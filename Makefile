@@ -4,7 +4,7 @@ LDFLAGS := -s -w
 
 all: fmt build
 
-build: cyssh cyscp cysshserver
+build: cyssh cyscp cysshserver cymain
 
 
 fmt:
@@ -24,6 +24,9 @@ cyscp:
 	
 cysshserver:
 	env CGO_ENABLED=0 go build -trimpath -ldflags "$(LDFLAGS)" -o bin/cyssh-server ./server
+
+cymain:
+	env CGO_ENABLED=0 go build -trimpath -ldflags "$(LDFLAGS)" -o bin/cysshmain ./
 
 test: gotest
 

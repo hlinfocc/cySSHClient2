@@ -30,6 +30,11 @@ func Waring(msg string) {
 		fmt.Fprintf(os.Stderr, "Waring: %s\n", err.Error())
 	}
 }
+func WaringErr(err error) {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+	}
+}
 
 func CheckError(err error) {
 	if err != nil {
