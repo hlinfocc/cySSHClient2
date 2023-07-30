@@ -5,58 +5,50 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-frp_version=`./bin/frps --version`
-echo "build version: $frp_version"
+cyssh_version=`./bin/cyssh -v`
+echo "build version: $cyssh_version"
 
 # cross_compiles
 make -f ./Makefile.cross-compiles
 
-rm -rf ./release/packages
-mkdir -p ./release/packages
+rm -rf ./dist/packages
+mkdir -p ./dist/packages
 
 os_all='linux darwin freebsd'
 arch_all='386 amd64 arm arm64 mips64 mips64le mips mipsle riscv64'
 
-cd ./release
+cd ./dist
 
 for os in $os_all; do
     for arch in $arch_all; do
-        frp_dir_name="frp_${frp_version}_${os}_${arch}"
-        frp_path="./packages/frp_${frp_version}_${os}_${arch}"
-
-        if [ "x${os}" = x"windows" ]; then
-            if [ ! -f "./frpc_${os}_${arch}.exe" ]; then
-                continue
-            fi
-            if [ ! -f "./frps_${os}_${arch}.exe" ]; then
-                continue
-            fi
-            mkdir ${frp_path}
-            mv ./frpc_${os}_${arch}.exe ${frp_path}/frpc.exe
-            mv ./frps_${os}_${arch}.exe ${frp_path}/frps.exe
-        else
-            if [ ! -f "./frpc_${os}_${arch}" ]; then
-                continue
-            fi
-            if [ ! -f "./frps_${os}_${arch}" ]; then
-                continue
-            fi
-            mkdir ${frp_path}
-            mv ./frpc_${os}_${arch} ${frp_path}/frpc
-            mv ./frps_${os}_${arch} ${frp_path}/frps
-        fi  
-        cp ../LICENSE ${frp_path}
-        cp -rf ../conf/* ${frp_path}
+        cyssh_dir_name="cyssh-client_${cyssh_version}_${os}_${arch}"
+        cyssh_path="./packages/cyssh-client_${cyssh_version}_${os}_${arch}"
+        
+        if [ ! -f "./cyssh_${os}_${arch}" ]; then
+            continue
+        fi
+        if [ ! -f "./cyscp_${os}_${arch}" ]; then
+            continue
+        fi
+        if [ ! -f "./cyssh-server_${os}_${arch}" ]; then
+            continue
+        fi
+        mkdir ${cyssh_path}
+        mv ./cyssh_${os}_${arch} ${cyssh_path}/cyssh
+        mv ./cyscp_${os}_${arch} ${cyssh_path}/cyscp
+        mv ./cyssh-server_${os}_${arch} ${cyssh_path}/cysh-server
+        cp ../LICENSE ${cyssh_path}
+        #cp -rf ../conf/* ${cyssh_path}
 
         # packages
         cd ./packages
         if [ "x${os}" = x"windows" ]; then
-            zip -rq ${frp_dir_name}.zip ${frp_dir_name}
+            zip -rq ${cyssh_dir_name}.zip ${cyssh_dir_name}
         else
-            tar -zcf ${frp_dir_name}.tar.gz ${frp_dir_name}
+            tar -zcvf ${cyssh_dir_name}.tar.gz ${cyssh_dir_name}
         fi  
         cd ..
-        rm -rf ${frp_path}
+        rm -rf ${cyssh_path}
     done
 done
 

@@ -1,4 +1,4 @@
-package dao
+package initdb
 
 import (
 	"database/sql"
@@ -9,7 +9,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func init() {
+func Init() {
 	dbpath := config.GetDbPath()
 	database, err := sql.Open("sqlite3", dbpath)
 	errors.CheckError(err)
@@ -44,7 +44,7 @@ func init() {
 	database.Close()
 }
 
-func getConn() *sql.DB {
+func GetConn() *sql.DB {
 	dbpath := config.GetDbPath()
 
 	exists, err := utils.PathExists(dbpath)
@@ -56,4 +56,19 @@ func getConn() *sql.DB {
 	db, err := sql.Open("sqlite3", dbpath)
 	errors.CheckError(err)
 	return db
+}
+
+func CheckDBIsWritable() {
+	dbpath := config.GetDbPath()
+	rs := utils.IsWritable(dbpath)
+	if rs == false {
+		errors.ThrowError("数据库【" + dbpath + "】对于当前用户没有可写权限")
+	}
+}
+func CheckDBIsReadable() {
+	dbpath := config.GetDbPath()
+	rs := utils.IsWritable(dbpath)
+	if !rs {
+		errors.ThrowError("数据库【" + dbpath + "】对于当前用户没有可读权限")
+	}
 }

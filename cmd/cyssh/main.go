@@ -49,7 +49,7 @@ func main() {
 	// 命令行参数解析
 	args := initParams()
 
-	fmt.Println(args)
+	// fmt.Println(args)
 	if args.HostList {
 		fmt.Println("hostlist")
 	} else if args.HostAdd {

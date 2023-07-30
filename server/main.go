@@ -2,15 +2,18 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"net"
 	"os"
 	"strconv"
 	"strings"
 	"time"
-)
 
-const socketPath = "/tmp/cysshclient.sock"
+	"github.com/hlinfocc/cySSHClient2/pkg/config"
+	"github.com/hlinfocc/cySSHClient2/pkg/dao/initdb"
+	"github.com/hlinfocc/cySSHClient2/pkg/version"
+)
 
 type Resp struct {
 	Code int
@@ -18,8 +21,33 @@ type Resp struct {
 	Data string
 }
 
-func main() {
-	// service := ":1200"
+/**
+* 命令行参数结构体
+ */
+type Args struct {
+	Initialization bool
+	Profile        string
+	Version        bool
+}
+
+/**
+* 初始化命令行参数信息
+ */
+func initParams() Args {
+	args := Args{}
+	flag.BoolVar(&args.Initialization, "init", args.Initialization, "初始化数据信息")
+	flag.StringVar(&args.Profile, "c", args.Profile, "指定配置文件")
+	flag.BoolVar(&args.Version, "v", args.Version, "显示版本信息")
+
+	flag.Parse()
+	return args
+}
+
+/**
+* 启动Socket服务
+ */
+func StartServer() {
+	socketPath := config.GetSocketPath()
 	os.Remove(socketPath)
 	tcpAddr, err := net.ResolveUnixAddr("unix", socketPath)
 	checkError(err)
@@ -35,9 +63,12 @@ func main() {
 }
 
 func HandleServerConn(conn net.Conn) {
-	conn.SetReadDeadline(time.Now().Add(2 * time.Minute)) // set 2 minutes timeout
-	request := make([]byte, 128)                          // set maxium request length to 128B to prevent flood attack
-	defer conn.Close()                                    // close connection before exit
+	// 设置2分钟超时时间
+	conn.SetReadDeadline(time.Now().Add(2 * time.Minute))
+	// 将最大请求长度设置为128B以防止DDos攻击
+	request := make([]byte, 128)
+	// 退出前关闭连接
+	defer conn.Close()
 	for {
 		read_len, err := conn.Read(request)
 
@@ -47,7 +78,8 @@ func HandleServerConn(conn net.Conn) {
 		}
 
 		if read_len == 0 {
-			break // connection already closed by client
+			// 客户端已关闭连接
+			break
 		} else if strings.TrimSpace(string(request[:read_len])) == "timestamp" {
 			daytime := strconv.FormatInt(time.Now().Unix(), 10)
 			conn.Write([]byte(daytime))
@@ -70,5 +102,19 @@ func checkError(err error) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
 		os.Exit(1)
+	}
+}
+
+func main() {
+	args := initParams()
+
+	fmt.Println(args)
+	if args.Initialization {
+		fmt.Println("初始化数据库")
+		initdb.Init()
+	} else if args.Version {
+		fmt.Println(version.Full())
+	} else {
+		StartServer()
 	}
 }

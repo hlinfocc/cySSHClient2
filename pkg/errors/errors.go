@@ -42,3 +42,11 @@ func CheckError(err error) {
 		os.Exit(1)
 	}
 }
+
+func ReturnError(err error) bool {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		return false
+	}
+	return true
+}
