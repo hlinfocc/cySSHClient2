@@ -1,77 +1,75 @@
 package hostlist
 
 import (
+	"fmt"
+
+	"github.com/hlinfocc/cySSHClient2/pkg/dao/hostlist"
 	"github.com/hlinfocc/cySSHClient2/pkg/dao/initdb"
 	"github.com/hlinfocc/cySSHClient2/pkg/errors"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/jedib0t/go-pretty/v6/table"
 )
 
-type Keylist struct {
-	Id         int
+type Sshkeylist struct {
+	Id         int `gorm:"column:id;PRIMARY_KEY;autoIncrement;not null"`
 	Keyname    string
 	Privatekey string
 	Publickey  string
 }
 
-func QueryKeylist() ([]*Keylist, error) {
+func QueryKeylist() ([]*Sshkeylist, error) {
 	initdb.CheckDBIsReadable()
-	var keylists []*Keylist
+	var keylists []*Sshkeylist
 	db := initdb.GetConn()
 
-	sql := "select * from sshkeylist order by id"
-	rows, err := db.Query(sql)
-	defer db.Close()
-	errors.CheckError(err)
-	if err != nil {
-		return keylists, err
-	}
-	for rows.Next() {
-		var id int
-		var keyname string
-		var privatekey string
-		var publickey string
-		err = rows.Scan(&id, &keyname, &privatekey, &publickey)
-		errors.CheckError(err)
-		var item *Keylist
-		item.Id = id
-		item.Keyname = keyname
-		item.Privatekey = privatekey
-		item.Publickey = publickey
-		keylists = append(keylists, item)
-	}
+	result := db.Order("id asc").Find(&keylists)
+	errors.CheckError(result.Error)
 	return keylists, nil
 }
 
-func Insert(data *Keylist) bool {
+func QueryOne(id string) (*Sshkeylist, error) {
+	initdb.CheckDBIsReadable()
+	var keyList *Sshkeylist
+	db := initdb.GetConn()
+	result := db.Where("id = ?", id).First(&keyList)
+	errors.CheckError(result.Error)
+	return keyList, nil
+}
+
+func RenderKeyList() {
+	list, err := QueryKeylist()
+	errors.CheckError(err)
+	t := table.NewWriter()
+	header := table.Row{"ID", "ssh identity_file"}
+	t.AppendHeader(header)
+	var rows []table.Row
+	for i := 0; i < len(list); i++ {
+		item := list[i]
+		rows = append(rows, table.Row{item.Id, item.Keyname})
+	}
+	t.AppendRows(rows)
+	fmt.Println(t.Render())
+}
+
+func Insert(data *Sshkeylist) bool {
 	initdb.CheckDBIsWritable()
 	db := initdb.GetConn()
-	stmt, err := db.Prepare("INSERT INTO sshkeylist(keyname,privatekey, publickey) VALUES (?, ?, ?)")
-	defer db.Close()
+	result := db.Create(&data)
+	err := result.Error
 	if err != nil {
 		return errors.ReturnError(err)
-	}
-	_, err1 := stmt.Exec(data.Keyname, data.Privatekey, data.Publickey)
-	if err1 != nil {
-		return errors.ReturnError(err1)
 	}
 	return true
 }
-func Update(data *Keylist) bool {
+func Update(data *Sshkeylist) bool {
 	initdb.CheckDBIsWritable()
 	db := initdb.GetConn()
-	stmt, err := db.Prepare("update sshkeylist set keyname=?,privatekey=?, publickey=? where id=?")
-	defer db.Close()
+	res := db.Save(&data)
+	err := res.Error
 	if err != nil {
 		return errors.ReturnError(err)
 	}
-	res, err1 := stmt.Exec(data.Keyname, data.Privatekey, data.Publickey, data.Id)
-	if err1 != nil {
-		return errors.ReturnError(err1)
-	}
-	affect, err2 := res.RowsAffected()
-	if err2 != nil {
-		return errors.ReturnError(err2)
-	}
+
+	affect := res.RowsAffected
 	if affect > 0 {
 		return true
 	} else {
@@ -81,19 +79,19 @@ func Update(data *Keylist) bool {
 func Delete(id int) bool {
 	initdb.CheckDBIsWritable()
 	db := initdb.GetConn()
-	stmt, err := db.Prepare("delete from sshkeylist where id=?")
-	defer db.Close()
+	var qty int64
+	db.Model(&hostlist.Sshhostlist{}).Where("keypath = ?", id).Count(&qty)
+	if qty > 0 {
+		err := errors.New("该证书有主机已经绑定，禁止删除")
+		return errors.ReturnError(err)
+	}
+	result := db.Delete(&Sshkeylist{}, id)
+	err := result.Error
 	if err != nil {
 		return errors.ReturnError(err)
 	}
-	res, err1 := stmt.Exec(id)
-	if err1 != nil {
-		return errors.ReturnError(err1)
-	}
-	affect, err2 := res.RowsAffected()
-	if err2 != nil {
-		return errors.ReturnError(err2)
-	}
+
+	affect := result.RowsAffected
 	if affect > 0 {
 		return true
 	} else {

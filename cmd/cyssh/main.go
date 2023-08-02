@@ -6,6 +6,8 @@ import (
 	"net"
 	"os"
 
+	"github.com/hlinfocc/cySSHClient2/pkg/dao/hostlist"
+	"github.com/hlinfocc/cySSHClient2/pkg/utils"
 	"github.com/hlinfocc/cySSHClient2/pkg/version"
 )
 
@@ -52,6 +54,9 @@ func main() {
 	// fmt.Println(args)
 	if args.HostList {
 		fmt.Println("hostlist")
+		hostlist.RenderHostList()
+		input := utils.InputHostId()
+		fmt.Println(input)
 	} else if args.HostAdd {
 		fmt.Println("adddddd")
 	} else if args.Version {

@@ -24,6 +24,12 @@ func ThrowError(msg string) {
 		os.Exit(1)
 	}
 }
+func ThrowErrorMsg(err error, msg string) {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", msg)
+		os.Exit(1)
+	}
+}
 func Waring(msg string) {
 	err := New(msg)
 	if err != nil {
@@ -32,20 +38,20 @@ func Waring(msg string) {
 }
 func WaringErr(err error) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		fmt.Fprintf(os.Stderr, "Fatal error: %s\n", err.Error())
 	}
 }
 
 func CheckError(err error) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		fmt.Fprintf(os.Stderr, "Fatal error: %s\n", err.Error())
 		os.Exit(1)
 	}
 }
 
 func ReturnError(err error) bool {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		fmt.Fprintf(os.Stderr, "Fatal error: %s\n", err.Error())
 		return false
 	}
 	return true

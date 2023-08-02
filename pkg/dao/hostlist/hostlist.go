@@ -1,13 +1,16 @@
 package hostlist
 
 import (
+	"fmt"
+
 	"github.com/hlinfocc/cySSHClient2/pkg/dao/initdb"
 	"github.com/hlinfocc/cySSHClient2/pkg/errors"
+	"github.com/jedib0t/go-pretty/v6/table"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type Hostlist struct {
-	Id       int
+type Sshhostlist struct {
+	Id       int `gorm:"column:id;PRIMARY_KEY;autoIncrement;not null"`
 	Host     string
 	Username string
 	Port     string
@@ -15,72 +18,72 @@ type Hostlist struct {
 	Keypath  string
 	Hostdesc string
 }
+type HostlistAll struct {
+	Id       int `gorm:"column:id;PRIMARY_KEY;autoIncrement;not null"`
+	Host     string
+	Username string
+	Port     string
+	Iskey    int
+	Keypath  string
+	Hostdesc string
+	Keyname  string
+}
 
-func QueryHostlist() ([]*Hostlist, error) {
+func QueryHostlist() ([]*HostlistAll, error) {
 	initdb.CheckDBIsReadable()
-	var hostLists []*Hostlist
+	var result []*HostlistAll
 	db := initdb.GetConn()
 
-	sql := "select * from sshhostlist order by id"
-	rows, err := db.Query(sql)
-	defer db.Close()
-	errors.CheckError(err)
-	if err != nil {
-		return hostLists, err
-	}
-	for rows.Next() {
-		var id int
-		var host string
-		var username string
-		var port string
-		var iskey int
-		var keypath string
-		var hostdesc string
-		err = rows.Scan(&id, &host, &username, &port, &iskey, &keypath, &hostdesc)
-		errors.CheckError(err)
-		var item *Hostlist
-		item.Id = id
-		item.Host = host
-		item.Username = username
-		item.Port = port
-		item.Iskey = iskey
-		item.Keypath = keypath
-		item.Hostdesc = hostdesc
-		hostLists = append(hostLists, item)
-	}
+	queryField := "sshhostlist.id, sshhostlist.host, sshhostlist.username,sshhostlist.port,sshhostlist.iskey,sshhostlist.keypath,sshhostlist.hostdesc, sshkeylist.keyname"
+	res := db.Model(&Sshhostlist{}).Select(queryField).Joins("left join sshkeylist on sshkeylist.id = sshhostlist.keypath").Scan(&result)
+	errors.CheckError(res.Error)
+
+	return result, nil
+}
+
+func QueryOne(id string) (*Sshhostlist, error) {
+	initdb.CheckDBIsReadable()
+	var hostLists *Sshhostlist
+	db := initdb.GetConn()
+	result := db.Where("id = ?", id).First(&hostLists)
+	errors.CheckError(result.Error)
 	return hostLists, nil
 }
 
-func Insert(data *Hostlist) bool {
+func RenderHostList() {
+	hostlist, err := QueryHostlist()
+	errors.CheckError(err)
+	t := table.NewWriter()
+	header := table.Row{"ID", "Description", "Port", "Host", "ssh identity_file"}
+	t.AppendHeader(header)
+	var rows []table.Row
+	for i := 0; i < len(hostlist); i++ {
+		item := hostlist[i]
+		rows = append(rows, table.Row{item.Id, item.Hostdesc, item.Port, fmt.Sprintf("%s@%s", item.Username, item.Host), item.Keyname})
+	}
+	t.AppendRows(rows)
+	fmt.Println(t.Render())
+}
+
+func Insert(data *Sshhostlist) bool {
 	initdb.CheckDBIsWritable()
 	db := initdb.GetConn()
-	stmt, err := db.Prepare("INSERT INTO sshhostlist(host,username, port, iskey, keypath,hostdesc) VALUES (?, ?, ?, ?, ?, ?)")
-	defer db.Close()
+	result := db.Create(&data)
+	err := result.Error
 	if err != nil {
 		return errors.ReturnError(err)
-	}
-	_, err1 := stmt.Exec(data.Host, data.Username, data.Port, data.Iskey, data.Keypath, data.Hostdesc)
-	if err1 != nil {
-		return errors.ReturnError(err1)
 	}
 	return true
 }
-func Update(data *Hostlist) bool {
+func Update(data *Sshhostlist) bool {
 	initdb.CheckDBIsWritable()
 	db := initdb.GetConn()
-	stmt, err := db.Prepare("update sshhostlist set host=?,username=?, port=?, iskey=?, keypath=?,hostdesc=? where id=?")
-	defer db.Close()
+	result := db.Save(&data)
+	err := result.Error
 	if err != nil {
 		return errors.ReturnError(err)
 	}
-	res, err1 := stmt.Exec(data.Host, data.Username, data.Port, data.Iskey, data.Keypath, data.Hostdesc, data.Id)
-	if err1 != nil {
-		return errors.ReturnError(err1)
-	}
-	affect, err2 := res.RowsAffected()
-	if err2 != nil {
-		return errors.ReturnError(err2)
-	}
+	affect := result.RowsAffected
 	if affect > 0 {
 		return true
 	} else {
@@ -90,19 +93,13 @@ func Update(data *Hostlist) bool {
 func Delete(id int) bool {
 	initdb.CheckDBIsWritable()
 	db := initdb.GetConn()
-	stmt, err := db.Prepare("delete from sshhostlist where id=?")
-	defer db.Close()
+
+	result := db.Delete(&Sshhostlist{}, id)
+	err := result.Error
 	if err != nil {
 		return errors.ReturnError(err)
 	}
-	res, err1 := stmt.Exec(id)
-	if err1 != nil {
-		return errors.ReturnError(err1)
-	}
-	affect, err2 := res.RowsAffected()
-	if err2 != nil {
-		return errors.ReturnError(err2)
-	}
+	affect := result.RowsAffected
 	if affect > 0 {
 		return true
 	} else {

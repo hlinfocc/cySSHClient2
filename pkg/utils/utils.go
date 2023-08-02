@@ -1,8 +1,13 @@
 package utils
 
 import (
+	"bufio"
+	"fmt"
 	"os"
+	"strconv"
 	"syscall"
+
+	"github.com/hlinfocc/cySSHClient2/pkg/errors"
 )
 
 // 判断所给路径文件/文件夹是否存在
@@ -41,4 +46,14 @@ func IsWritable(f string) bool {
 	} else {
 		return true
 	}
+}
+
+func InputHostId() int {
+	fmt.Print("请输入主机ID：")
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	inputStr := scanner.Text()
+	hostId, err := strconv.Atoi(inputStr)
+	errors.ThrowErrorMsg(err, "请输入正确的主机ID")
+	return hostId
 }
