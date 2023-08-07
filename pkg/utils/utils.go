@@ -3,10 +3,13 @@ package utils
 import (
 	"bufio"
 	"fmt"
+	"net"
 	"os"
+	"regexp"
 	"strconv"
 	"syscall"
 
+	"github.com/go-cmd/cmd"
 	"github.com/hlinfocc/cySSHClient2/pkg/errors"
 )
 
@@ -47,6 +50,14 @@ func IsWritable(f string) bool {
 		return true
 	}
 }
+func IsReadable(f string) bool {
+	err := syscall.Access(f, syscall.O_RDONLY)
+	if err != nil {
+		return false
+	} else {
+		return true
+	}
+}
 
 func InputHostId() int {
 	fmt.Print("请输入主机ID：")
@@ -56,4 +67,99 @@ func InputHostId() int {
 	hostId, err := strconv.Atoi(inputStr)
 	errors.ThrowErrorMsg(err, "请输入正确的主机ID")
 	return hostId
+}
+func InputInt(msg string) int {
+	if len(msg) == 0 {
+		msg = "请输入"
+	}
+	fmt.Printf("%s：", msg)
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	inputStr := scanner.Text()
+	res, err := strconv.Atoi(inputStr)
+	errors.ThrowErrorMsg(err, "只能输入数字^_^")
+	return res
+}
+
+func InputPort(msg string) int {
+	if len(msg) == 0 {
+		msg = "请输入端口"
+	}
+	fmt.Printf("%s：", msg)
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	inputStr := scanner.Text()
+	if len(inputStr) == 0 {
+		inputStr = "22"
+	}
+	res, err := strconv.Atoi(inputStr)
+	errors.ThrowErrorMsg(err, "只能输入数字^_^")
+	return res
+}
+
+func InputString(msg string) string {
+	if len(msg) == 0 {
+		msg = "请输入"
+	}
+	fmt.Printf("%s：", msg)
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	inputStr := scanner.Text()
+	return inputStr
+}
+
+func ExecuteCommandCheckLocale(cmdstr string) int {
+	c := cmd.NewCmd("/usr/bin/bash", "-c", cmdstr)
+	<-c.Start()
+	rs := c.Status().Stdout[0]
+	qty, err := strconv.Atoi(rs)
+	if err != nil {
+		return -1
+	} else {
+		return qty
+	}
+}
+
+func IsSupportZhCn() {
+	var localeLangArr = [4]string{"en_US.UTF-8 UTF-8", "zh_CN.UTF-8 UTF-8", "zh_CN.GBK GBK", "zh_CN GB2312"}
+	langQty := -1
+	for i := 0; i < len(localeLangArr); i++ {
+		cmdstr := fmt.Sprintf("locale -a | grep \"%s\" | wc -l", localeLangArr[i])
+		qty := ExecuteCommandCheckLocale(cmdstr)
+		if qty > 0 {
+			langQty++
+		}
+	}
+}
+
+func ValiedIP(ip string) bool {
+	regex := regexp.MustCompile(`^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$`)
+	return regex.MatchString(ip)
+}
+
+func CheckNetAddr(addr string) bool {
+	if len(addr) <= 0 {
+		return false
+	}
+	if ValiedIP(addr) {
+		ipnet, err := net.LookupIP(addr)
+		if err != nil {
+			return false
+		}
+		if len(ipnet) == 0 {
+			return false
+		} else {
+			return true
+		}
+	} else {
+		ipnet, err := net.LookupHost(addr)
+		if err != nil {
+			return false
+		}
+		if len(ipnet) == 0 {
+			return false
+		} else {
+			return true
+		}
+	}
 }

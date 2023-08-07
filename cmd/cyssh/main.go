@@ -4,9 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"net"
-	"os"
 
 	"github.com/hlinfocc/cySSHClient2/pkg/dao/hostlist"
+	"github.com/hlinfocc/cySSHClient2/pkg/errors"
 	"github.com/hlinfocc/cySSHClient2/pkg/utils"
 	"github.com/hlinfocc/cySSHClient2/pkg/version"
 )
@@ -53,18 +53,35 @@ func main() {
 
 	// fmt.Println(args)
 	if args.HostList {
-		fmt.Println("hostlist")
 		hostlist.RenderHostList()
-		input := utils.InputHostId()
-		fmt.Println(input)
 	} else if args.HostAdd {
 		fmt.Println("adddddd")
+	} else if args.HostModify {
+
+	} else if args.HostDel {
+
+	} else if args.KeyList {
+
+	} else if args.KeyAdd {
+
+	} else if args.KeyGen {
+
+	} else if args.KeyDel {
+
+	} else if args.KeySync {
+		fmt.Println("adddddd")
 	} else if args.Version {
+		// 显示版本号
 		fmt.Println(version.Full())
 	} else {
 
 		if flag.NArg() > 0 {
 			fmt.Println(flag.Args())
+		} else {
+			hostlist.RenderHostList()
+			input := utils.InputHostId()
+			fmt.Println(input)
+
 		}
 	}
 }
@@ -72,23 +89,16 @@ func main() {
 func reqBySocket() string {
 	const socketPath = "/tmp/cysshclient.sock"
 	tcpAddr, err := net.ResolveUnixAddr("unix", socketPath)
-	checkError(err)
+	errors.CheckError(err)
 	conn, err := net.DialUnix("unix", nil, tcpAddr)
-	checkError(err)
+	errors.CheckError(err)
 	_, err = conn.Write([]byte("timestamp2"))
-	checkError(err)
+	errors.CheckError(err)
 	// result, err := ioutil.ReadAll(conn)
 	result := make([]byte, 256)
 	_, err = conn.Read(result)
-	checkError(err)
+	errors.CheckError(err)
 	fmt.Println(string(result))
 	// os.Exit(0)
 	return string(result)
-}
-
-func checkError(err error) {
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
-		os.Exit(1)
-	}
 }

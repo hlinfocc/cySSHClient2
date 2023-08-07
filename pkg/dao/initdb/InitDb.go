@@ -88,13 +88,20 @@ func CheckDBIsWritable() {
 	dbpath := config.GetDbPath()
 	rs := utils.IsWritable(dbpath)
 	if !rs {
-		errors.ThrowError("数据库【" + dbpath + "】对于当前用户没有可写权限")
+		errors.ThrowError("数据文件【" + dbpath + "】对于当前用户没有可写权限")
 	}
 }
-func CheckDBIsReadable() {
+
+func CheckDBIsWritableBool() bool {
 	dbpath := config.GetDbPath()
 	rs := utils.IsWritable(dbpath)
+	return rs
+}
+
+func CheckDBIsReadable() {
+	dbpath := config.GetDbPath()
+	rs := utils.IsReadable(dbpath)
 	if !rs {
-		errors.ThrowError("数据库【" + dbpath + "】对于当前用户没有可读权限")
+		errors.ThrowError("数据文件【" + dbpath + "】对于当前用户没有可读权限")
 	}
 }

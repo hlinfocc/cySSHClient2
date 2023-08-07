@@ -26,7 +26,7 @@ func QueryKeylist() ([]*Sshkeylist, error) {
 	return keylists, nil
 }
 
-func QueryOne(id string) (*Sshkeylist, error) {
+func QueryOne(id int) (*Sshkeylist, error) {
 	initdb.CheckDBIsReadable()
 	var keyList *Sshkeylist
 	db := initdb.GetConn()
