@@ -1,4 +1,4 @@
-package hostlist
+package keylist
 
 import (
 	"fmt"
