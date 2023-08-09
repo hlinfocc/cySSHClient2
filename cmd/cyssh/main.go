@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/hlinfocc/cySSHClient2/pkg/dao/hostlist"
+	"github.com/hlinfocc/cySSHClient2/pkg/dao/dbhandle"
 	"github.com/hlinfocc/cySSHClient2/pkg/errors"
 	"github.com/hlinfocc/cySSHClient2/pkg/utils"
 	"github.com/hlinfocc/cySSHClient2/pkg/version"
@@ -53,7 +53,7 @@ func main() {
 
 	// fmt.Println(args)
 	if args.HostList {
-		hostlist.RenderHostList()
+		dbhandle.RenderHostList()
 	} else if args.HostAdd {
 		fmt.Println("adddddd")
 	} else if args.HostModify {
@@ -78,7 +78,7 @@ func main() {
 		if flag.NArg() > 0 {
 			fmt.Println(flag.Args())
 		} else {
-			hostlist.RenderHostList()
+			dbhandle.RenderHostList()
 			input := utils.InputHostId()
 			fmt.Println(input)
 

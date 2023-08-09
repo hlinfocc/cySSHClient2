@@ -5,28 +5,12 @@ import (
 
 	"github.com/glebarez/sqlite"
 	"github.com/hlinfocc/cySSHClient2/pkg/config"
+	"github.com/hlinfocc/cySSHClient2/pkg/dao/entity"
 	"github.com/hlinfocc/cySSHClient2/pkg/errors"
 	"github.com/hlinfocc/cySSHClient2/pkg/utils"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )
-
-type Sshhostlist struct {
-	Id       int `gorm:"column:id;PRIMARY_KEY;autoIncrement;not null"`
-	Host     string
-	Username string
-	Port     string
-	Iskey    int
-	Keypath  string
-	Hostdesc string
-}
-
-type Sshkeylist struct {
-	Id         int `gorm:"column:id;PRIMARY_KEY;autoIncrement;not null"`
-	Keyname    string
-	Privatekey string
-	Publickey  string
-}
 
 func Init() {
 	dbpath := config.GetDbPath()
@@ -49,7 +33,7 @@ func Init() {
 	        "hostdesc"  TEXT
 	    );
 	` */
-	err1 := database.AutoMigrate(&Sshhostlist{})
+	err1 := database.AutoMigrate(&entity.Sshhostlist{})
 	errors.WaringErr(err1)
 
 	/* var tbsshkeylist = `
@@ -61,7 +45,7 @@ func Init() {
 	        );
 			` */
 
-	err2 := database.AutoMigrate(&Sshkeylist{})
+	err2 := database.AutoMigrate(&entity.Sshkeylist{})
 	errors.WaringErr(err2)
 
 }
