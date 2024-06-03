@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hlinfocc/cySSHClient2/pkg/admin"
 	"github.com/hlinfocc/cySSHClient2/pkg/config"
 	"github.com/hlinfocc/cySSHClient2/pkg/dao/initdb"
 	"github.com/hlinfocc/cySSHClient2/pkg/version"
@@ -28,6 +29,7 @@ type Args struct {
 	Initialization bool
 	Profile        string
 	Version        bool
+	Web            bool
 }
 
 /**
@@ -37,6 +39,7 @@ func initParams() Args {
 	args := Args{}
 	flag.BoolVar(&args.Initialization, "init", args.Initialization, "初始化数据信息")
 	flag.StringVar(&args.Profile, "c", args.Profile, "指定配置文件")
+	flag.BoolVar(&args.Web, "w", args.Web, "启动web服务")
 	flag.BoolVar(&args.Version, "v", args.Version, "显示版本信息")
 
 	flag.Parse()
@@ -108,12 +111,14 @@ func checkError(err error) {
 func main() {
 	args := initParams()
 
-	fmt.Println(args)
+	fmt.Println(args.Initialization)
 	if args.Initialization {
 		fmt.Println("初始化数据库")
 		initdb.Init()
 	} else if args.Version {
 		fmt.Println(version.Full())
+	} else if args.Web {
+		admin.StartWebServer()
 	} else {
 		StartServer()
 	}

@@ -30,7 +30,7 @@ type Args struct {
 /**
 * 初始化命令行参数信息
  */
-func initParams() Args {
+func initParams() (Args, int) {
 	args := Args{}
 	flag.BoolVar(&args.HostList, "l", args.HostList, "列出所以主机")
 	flag.BoolVar(&args.HostAdd, "i", args.HostAdd, "新增主机")
@@ -44,39 +44,65 @@ func initParams() Args {
 	flag.BoolVar(&args.Version, "v", args.Version, "显示版本信息")
 
 	flag.Parse()
-	return args
+	hostId := -1
+	if flag.NArg() > 0 {
+		argsExt := flag.Args()
+		for i := 0; i < len(argsExt); i++ {
+			item := argsExt[i]
+			itemInt := utils.String2Int(item)
+			if itemInt > 0 {
+				hostId = itemInt
+				break
+			}
+
+		}
+	}
+	return args, hostId
 }
 
 func main() {
 	// 命令行参数解析
-	args := initParams()
+	args, hostId := initParams()
 
 	// fmt.Println(args)
 	if args.HostList {
 		dbhandle.RenderHostList()
 	} else if args.HostAdd {
-		fmt.Println("adddddd")
+		dbhandle.AddHost()
 	} else if args.HostModify {
+		if hostId <= 0 {
+			dbhandle.RenderHostList()
+			hostId = utils.InputHostId()
+		}
+		dbhandle.UpdateHost(hostId)
 
 	} else if args.HostDel {
-
+		if hostId <= 0 {
+			dbhandle.RenderHostList()
+			hostId = utils.InputHostId()
+		}
+		dbhandle.DeleteHostById(hostId)
 	} else if args.KeyList {
-
+		dbhandle.RenderKeyList()
 	} else if args.KeyAdd {
-
+		dbhandle.AddKeyInfo()
 	} else if args.KeyGen {
 
 	} else if args.KeyDel {
-
+		keyId := utils.InputInt("请输入ssh密钥对ID")
+		dbhandle.DeleteKeyById(keyId)
 	} else if args.KeySync {
 		fmt.Println("adddddd")
 	} else if args.Version {
 		// 显示版本号
 		fmt.Println(version.Full())
 	} else {
-
 		if flag.NArg() > 0 {
 			fmt.Println(flag.Args())
+			if hostId <= 0 {
+				dbhandle.RenderHostList()
+				hostId = utils.InputHostId()
+			}
 		} else {
 			dbhandle.RenderHostList()
 			input := utils.InputHostId()

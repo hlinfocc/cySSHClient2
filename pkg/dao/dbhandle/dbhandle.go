@@ -3,6 +3,7 @@ package dbhandle
 import (
 	"fmt"
 	"os"
+	"path"
 	"strconv"
 
 	"github.com/hlinfocc/cySSHClient2/pkg/dao/entity"
@@ -176,4 +177,39 @@ func QueryKeyOneById(id int) (*entity.Sshkeylist, error) {
 }
 func DeleteKeyById(id int) bool {
 	return keylist.Delete(id)
+}
+
+func AddKeyInfo() bool {
+	keyPath := utils.InputString("请输入ssh密钥对私钥路径[如: ~/.ssh/id_rsa]")
+
+	if len(keyPath) > 0 && !utils.FileExists(keyPath) {
+		fmt.Printf("私钥文件[%s]不存在或者没有可读权限", keyPath)
+		os.Exit(1)
+	} else if len(keyPath) <= 0 {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Printf("文件[%s]不存在或者没有可读权限", keyPath)
+			os.Exit(1)
+		} else {
+			keyPath = homeDir + "/.ssh/id_rsa"
+		}
+	}
+	pubKeyPath := keyPath + ".pub"
+	if !utils.FileExists(pubKeyPath) {
+		fmt.Printf("公钥文件[%s]不存在或者没有可读权限", keyPath)
+		os.Exit(1)
+	}
+	data := entity.Sshkeylist{}
+
+	privateContent, err := os.ReadFile(keyPath)
+	errors.CheckError(err)
+	data.Privatekey = string(privateContent)
+
+	publicContent, err := os.ReadFile(pubKeyPath)
+	errors.CheckError(err)
+	data.Publickey = string(publicContent)
+
+	fileName := path.Base(keyPath)
+	data.Keyname = fileName
+	return keylist.Insert(&data)
 }

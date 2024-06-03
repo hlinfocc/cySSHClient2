@@ -1,0 +1,1 @@
+import{d as e,H as o,I as t,J as s}from"./pinia-5d85bb97.js";import{a as n}from"./vue-94d06e22.js";const a={class:"content"},c=s("div",null,"notfound",-1),_=[c],u=e({__name:"index",setup(r){return n(),(d,i)=>(o(),t("div",a,_))}});export{u as default};

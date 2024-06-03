@@ -48,6 +48,9 @@ func Init() {
 	err2 := database.AutoMigrate(&entity.Sshkeylist{})
 	errors.WaringErr(err2)
 
+	err3 := database.AutoMigrate(&entity.UserInfo{})
+	errors.WaringErr(err3)
+
 }
 
 func GetConn() *gorm.DB {
