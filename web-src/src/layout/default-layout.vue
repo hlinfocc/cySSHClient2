@@ -84,7 +84,7 @@
   };
 
   // 是否显示切换框架结构
-  const myPattern = ref('legend');
+  const myPattern = ref('classic');
 
   // 主题配置
   const disTheme = ref(false);
@@ -110,12 +110,12 @@
     if (newValue.theme === 'dark') {
       changefooter.value = '#262323;';
     } else {
-      changefooter.value = '#fff;';
+      changefooter.value = '#fff;';myPattern
     }
   });
   // 初始化默认主题
   onMounted(() => {
-    appStore.updateSettings({ theme: 'light' });
+    appStore.updateSettings({ theme: 'violet' });
     theme.changeTheme(DefaultTheme);
     appStore.updateSettings({ themelist: 'default' });
   });

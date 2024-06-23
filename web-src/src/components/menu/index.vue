@@ -258,6 +258,7 @@
       'Result',
       'User',
       'Cloud',
+      'Host'
     ];
     if (filter.indexOf(data.id) === -1) {
       router.push({ name: data.id });
