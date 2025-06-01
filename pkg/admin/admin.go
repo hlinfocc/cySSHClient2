@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"embed"
 	"fmt"
 	"log"
 	"net"
@@ -9,25 +8,20 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/hlinfocc/cySSHClient2/assets"
+	"github.com/hlinfocc/cySSHClient2/pkg/dao/dbhandle"
+	"github.com/hlinfocc/cySSHClient2/pkg/dao/entity"
+	"github.com/hlinfocc/cySSHClient2/pkg/datavo"
+	"github.com/hlinfocc/cySSHClient2/pkg/utils"
+	jwtutils "github.com/hlinfocc/cySSHClient2/pkg/utils/jwtUtils"
 )
 
 type Resp struct {
-	Code int
-	Msg  string
-	Data string
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
+	Data string `json:"msg"`
 }
-
-type LoginParams struct {
-	UserName string `json:"userName"`
-	Passwd   string `json:"passwd"`
-}
-
-//go:embed assets/*
-var embededFiles embed.FS
 
 func checkPortStatus(port int) bool {
 	// 监听 端口
@@ -79,14 +73,13 @@ func StartWebServer() {
 	router.StaticFS("/static", assets.FileSystem)
 
 	// 使用cookie存储session信息
-	store := cookie.NewStore([]byte("secret"))
-	router.Use(sessions.Sessions("PHPSESSIONID", store))
+	// store := cookie.NewStore([]byte("secret"))
+	// router.Use(sessions.Sessions("PHPSESSIONID", store))
 
 	// 定义一个GET请求的路由，根路径"/"
 	router.GET("/", func(c *gin.Context) {
-		// c.String(http.StatusOK, "Hello, Gin!")
 		// 在这里提供Vue.js的入口HTML文件
-		indexHTML, err := assets.GetIndexHtml() //embededFiles.ReadFile("assets/index.html")
+		indexHTML, err := assets.GetIndexHtml()
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Failed to read index.html: %v", err)
 			return
@@ -95,8 +88,8 @@ func StartWebServer() {
 	})
 
 	// 登录
-	router.POST("/api/login", func(ctx *gin.Context) {
-		var loginParams LoginParams
+	router.POST("/api/user/login", func(ctx *gin.Context) {
+		var loginParams datavo.LoginParams
 		if err := ctx.ShouldBindJSON(&loginParams); err != nil {
 			// 处理错误
 			res := Resp{
@@ -115,11 +108,246 @@ func StartWebServer() {
 			ctx.JSON(http.StatusOK, res)
 			return
 		}
-		res := Resp{
-			Code: 200,
-			Msg:  "登录成功",
+
+		code, msg, user := dbhandle.UserLoginCheck(loginParams)
+		tokenStr, e := jwtutils.GenJwtToken(user.Id, user.RealName, user.Account, user.Status, user.UserType, user.Role)
+		if e != nil {
+			res := Resp{
+				Code: 500,
+				Msg:  "生成token失败",
+			}
+			ctx.JSON(http.StatusOK, res)
+			return
+		}
+		token := datavo.TokenInfo{
+			Token:    tokenStr,
+			UserInfo: user,
+		}
+		res := datavo.UserResp[datavo.TokenInfo]{
+			Code: code,
+			Msg:  msg,
+			Data: token,
 		}
 		ctx.JSON(http.StatusOK, res)
+	})
+
+	router.GET("/api/user/userInfo", func(ctx *gin.Context) {
+		var hostParams datavo.HostParams
+		token := ctx.GetHeader("Authorization")
+		if token == "" {
+			token = ctx.GetHeader("token")
+		}
+		log.Println(token)
+		customClaims, e := jwtutils.JWTParse(token)
+		if e != nil {
+			ctx.JSON(http.StatusUnauthorized, Resp{
+				Code: 401,
+				Msg:  "鉴权失败",
+			})
+			return
+		}
+
+		log.Println(hostParams)
+		user := entity.UserInfo{
+			Id:       customClaims.UserID,
+			Account:  customClaims.Account,
+			Role:     customClaims.Role,
+			RealName: customClaims.RealName,
+			Status:   customClaims.Status,
+			UserType: customClaims.UserType,
+		}
+		tokenData := datavo.TokenInfo{
+			Token:    token,
+			UserInfo: user,
+		}
+		ctx.JSON(http.StatusOK, tokenData)
+	})
+
+	router.POST("/api/hosts/list", func(ctx *gin.Context) {
+		var hostParams datavo.HostParams
+		if err := ctx.ShouldBindJSON(&hostParams); err != nil {
+			// 处理错误
+			res := Resp{
+				Code: 404,
+				Msg:  "参数错误",
+			}
+			ctx.JSON(http.StatusOK, res)
+			return
+		}
+		log.Println(hostParams)
+
+		ctx.JSON(http.StatusOK, dbhandle.QueryHostsList(hostParams.Page, hostParams.Limit, hostParams.Description, hostParams.HostIp, hostParams.HostExtent == 1))
+	})
+
+	router.POST("/api/hosts/insert", func(ctx *gin.Context) {
+		var hostParams *entity.Sshhostlist
+		if err := ctx.ShouldBindJSON(&hostParams); err != nil {
+			// 处理错误
+			res := Resp{
+				Code: 404,
+				Msg:  "参数错误",
+			}
+			ctx.JSON(http.StatusOK, res)
+			return
+		}
+		log.Println(hostParams)
+		ctx.JSON(http.StatusOK, dbhandle.Save(hostParams, true))
+	})
+	router.POST("/api/hosts/update", func(ctx *gin.Context) {
+		var hostParams *entity.Sshhostlist
+		if err := ctx.ShouldBindJSON(&hostParams); err != nil {
+			// 处理错误
+			res := Resp{
+				Code: 404,
+				Msg:  "参数错误",
+			}
+			ctx.JSON(http.StatusOK, res)
+			return
+		}
+		log.Println(hostParams)
+		ctx.JSON(http.StatusOK, dbhandle.Save(hostParams, false))
+	})
+	router.DELETE("/api/hosts/delete", func(ctx *gin.Context) {
+		id := utils.String2Int(ctx.Query("id"))
+		var res Resp
+		if id == 0 {
+			// 处理错误
+			res = Resp{
+				Code: 404,
+				Msg:  "参数错误",
+			}
+			ctx.JSON(http.StatusOK, res)
+			return
+		}
+		rs := dbhandle.DeleteHostById(id)
+		if rs {
+			res = Resp{
+				Code: 200,
+				Msg:  "删除成功",
+			}
+		} else {
+			res = Resp{
+				Code: 500,
+				Msg:  "删除失败",
+			}
+		}
+		ctx.JSON(http.StatusOK, res)
+	})
+
+	router.POST("/api/keys/list", func(ctx *gin.Context) {
+		var hostParams datavo.HostParams
+		if err := ctx.ShouldBindJSON(&hostParams); err != nil {
+			// 处理错误
+			res := Resp{
+				Code: 404,
+				Msg:  "参数错误",
+			}
+			ctx.JSON(http.StatusOK, res)
+			return
+		}
+		log.Println(hostParams)
+		ctx.JSON(http.StatusOK, dbhandle.QueryKeysList(hostParams.Page, hostParams.Limit))
+	})
+	router.POST("/api/keys/insert", func(ctx *gin.Context) {
+		var ckParams *entity.Sshkeylist
+		if err := ctx.ShouldBindJSON(&ckParams); err != nil {
+			// 处理错误
+			res := Resp{
+				Code: 404,
+				Msg:  "参数错误",
+			}
+			ctx.JSON(http.StatusOK, res)
+			return
+		}
+		log.Println(ckParams)
+		ctx.JSON(http.StatusOK, dbhandle.SaveKeys(ckParams, true))
+	})
+	router.POST("/api/keys/create", func(ctx *gin.Context) {
+		var ckParams *datavo.CreateSshKeyParams
+		if err := ctx.ShouldBindJSON(&ckParams); err != nil {
+			// 处理错误
+			res := Resp{
+				Code: 404,
+				Msg:  "参数错误",
+			}
+			ctx.JSON(http.StatusOK, res)
+			return
+		}
+		log.Println(ckParams)
+		ctx.JSON(http.StatusOK, dbhandle.CreateKeys(ckParams))
+	})
+	router.DELETE("/api/keys/delete", func(ctx *gin.Context) {
+		id := utils.String2Int(ctx.Query("id"))
+
+		var res Resp
+		if id == 0 {
+			// 处理错误
+			res = Resp{
+				Code: 404,
+				Msg:  "参数错误",
+			}
+			ctx.JSON(http.StatusOK, res)
+			return
+		}
+		rs, msg := dbhandle.DeleteKeyById(id, false)
+		if rs {
+			res = Resp{
+				Code: 200,
+				Msg:  msg,
+			}
+		} else {
+			res = Resp{
+				Code: 500,
+				Msg:  msg,
+			}
+		}
+		ctx.JSON(http.StatusOK, res)
+	})
+	router.GET("/api/home/count", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, dbhandle.HomeCount())
+	})
+	router.POST("/api/hostExtent/list", func(ctx *gin.Context) {
+		var hostParams datavo.HostParams
+		if err := ctx.ShouldBindJSON(&hostParams); err != nil {
+			// 处理错误
+			res := Resp{
+				Code: 404,
+				Msg:  "参数错误",
+			}
+			ctx.JSON(http.StatusOK, res)
+			return
+		}
+		log.Println(hostParams)
+
+		ctx.JSON(http.StatusOK, dbhandle.QueryHostExtentList(hostParams.Page, hostParams.Limit))
+	})
+	router.POST("/api/hostExtent/insert", func(ctx *gin.Context) {
+		var hostParams *entity.HostExtent
+		if err := ctx.ShouldBindJSON(&hostParams); err != nil {
+			// 处理错误
+			res := Resp{
+				Code: 404,
+				Msg:  "参数错误",
+			}
+			ctx.JSON(http.StatusOK, res)
+			return
+		}
+		log.Println(hostParams)
+		ctx.JSON(http.StatusOK, dbhandle.SaveHostExtent(hostParams, true))
+	})
+	router.POST("/api/hostExtent/update", func(ctx *gin.Context) {
+		var hostParams *entity.HostExtent
+		if err := ctx.ShouldBindJSON(&hostParams); err != nil {
+			// 处理错误
+			res := Resp{
+				Code: 404,
+				Msg:  "参数错误",
+			}
+			ctx.JSON(http.StatusOK, res)
+			return
+		}
+		log.Println(hostParams)
+		ctx.JSON(http.StatusOK, dbhandle.SaveHostExtent(hostParams, false))
 	})
 
 	// 启动Gin服务器，监听端口

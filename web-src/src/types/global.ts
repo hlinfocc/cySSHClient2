@@ -44,3 +44,4 @@ export interface ApigInfo {
 export type CommonError = {
   message: string;
 };
+

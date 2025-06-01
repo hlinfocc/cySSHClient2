@@ -13,7 +13,7 @@ export default {
   'settings.footer': '时尚模式',
   'settings.colorWeek': '主题配置',
   'settings.alertContent':
-    '配置之后仅是临时生效，要想真正作用于项目，点击下方的 "复制配置" 按钮，将配置替换到 settings.json 中即可。',
+    '配置之后仅是临时生效。',
   'settings.copySettings': '复制配置',
   'settings.copySettings.message':
     '复制成功，请粘贴到 src/settings.json 文件中',

@@ -56,3 +56,10 @@ func ReturnError(err error) bool {
 	}
 	return true
 }
+func ReturnErrorMsg(err error, msg string) bool {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error: %s\n", msg)
+		return false
+	}
+	return true
+}

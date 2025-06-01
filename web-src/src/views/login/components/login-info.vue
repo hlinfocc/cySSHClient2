@@ -33,10 +33,10 @@
           <tiny-link type="primary">
             {{ $t('login.form.forgetPassword') }}
           </tiny-link>
-          <tiny-link type="primary" class="divide-line">|</tiny-link>
-          <tiny-link type="primary" @click="typeChange">
+          <!-- <tiny-link type="primary" class="divide-line">|</tiny-link> -->
+          <!-- <tiny-link type="primary" @click="typeChange">
             {{ $t('login.form.registration') }}
-          </tiny-link>
+          </tiny-link> -->
         </div>
       </div>
 
@@ -98,7 +98,7 @@
 
   const loginInfo = reactive({
     username: 'admin',
-    password: 'admin',
+    password: '123456',
     rememberPassword: true,
   });
 
@@ -130,30 +130,33 @@
       setLoading(true);
 
       try {
+        
         await userStore.login({
-          username: loginInfo.username,
+          account: loginInfo.username,
           password: loginInfo.password,
-        });
+        })
         Modal.message({
           message: t('login.form.login.success'),
           status: 'success',
         });
         const { redirect, ...othersQuery } = router.currentRoute.value.query;
+        console.log("redirect:>>>>>>",redirect);
+        
         router.push({
-          name: (redirect as string) || 'Home',
+          name: redirect?(redirect as string):'Home',
           query: {
             ...othersQuery,
           },
         });
       } catch (err) {
-        Notify({
-          type: 'error',
-          title: t('login.tip.right'),
-          message: t('login.tip.info'),
-          position: 'top-right',
-          duration: 2000,
-          customClass: 'my-custom-cls',
-        });
+        // Notify({
+        //   type: 'error',
+        //   title: t('login.tip.right'),
+        //   message: t('login.tip.info'),
+        //   position: 'top-right',
+        //   duration: 2000,
+        //   customClass: 'my-custom-cls',
+        // });
       } finally {
         setLoading(false);
       }

@@ -50,6 +50,7 @@
   const iconApplication = IconApplication();
   const tree = ref();
   const expandeArr = ref();
+  
   const routerTitle = [
     {
       value: 'Board',
@@ -64,113 +65,30 @@
       bold: 'title',
     },
     {
-      value: 'Work',
-      name: 'menu.work',
-      icon: null,
-      bold: 'title',
-    },
-    {
-      value: 'List',
-      name: 'menu.list',
-      icon: iconFiles,
+      value: 'Hosts',
+      name: 'menu.hosts',
+      icon: iconApplication,
       bold: 'main-title',
     },
     {
-      value: 'Table',
-      name: 'menu.list.searchTable',
-      icon: null,
-      bold: 'title',
-    },
-    {
-      value: 'Form',
-      name: 'menu.form',
-      icon: iconSetting,
+      value: 'Keys',
+      name: 'menu.keys',
+      icon: iconApplication,
       bold: 'main-title',
     },
     {
-      value: 'Base',
-      name: 'menu.form.base',
+      value: 'HostsList',
+      name: 'menu.hosts.list',
       icon: null,
       bold: 'title',
     },
     {
-      value: 'Step',
-      name: 'menu.form.step',
+      value: 'HostsExtend',
+      name: 'menu.hostExtend.list',
       icon: null,
       bold: 'title',
     },
-    {
-      value: 'Profile',
-      name: 'menu.profile',
-      icon: iconFiletext,
-      bold: 'main-title',
-    },
-    {
-      value: 'Detail',
-      name: 'menu.profile.detail',
-      icon: null,
-      bold: 'title',
-    },
-    {
-      value: 'Result',
-      name: 'menu.result',
-      icon: iconSuccessful,
-      bold: 'main-title',
-    },
-    {
-      value: 'Success',
-      name: 'menu.result.success',
-      icon: null,
-      bold: 'title',
-    },
-    {
-      value: 'Error',
-      name: 'menu.result.error',
-      icon: null,
-      bold: 'title',
-    },
-    {
-      value: 'Cloud',
-      name: 'menu.cloud',
-      icon: iconDownloadCloud,
-      bold: 'main-title',
-    },
-    {
-      value: 'Hello',
-      name: 'menu.cloud.hello',
-      icon: null,
-      bold: 'title',
-    },
-    {
-      value: 'Contracts',
-      name: 'menu.cloud.contracts',
-      icon: null,
-      bold: 'title',
-    },
-    {
-      value: 'Exception',
-      name: 'menu.exception',
-      icon: iconCueL,
-      bold: 'main-title',
-    },
-    {
-      value: '403',
-      name: 'menu.exception.403',
-      icon: null,
-      bold: 'title',
-    },
-    {
-      value: '404',
-      name: 'menu.exception.404',
-      icon: null,
-      bold: 'title',
-    },
-    {
-      value: '500',
-      name: 'menu.exception.500',
-      icon: null,
-      bold: 'title',
-    },
+   
     {
       value: 'User',
       name: 'menu.user',
@@ -258,7 +176,7 @@
       'Result',
       'User',
       'Cloud',
-      'Host'
+      'Hosts'
     ];
     if (filter.indexOf(data.id) === -1) {
       router.push({ name: data.id });

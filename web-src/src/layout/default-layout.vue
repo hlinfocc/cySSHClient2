@@ -84,7 +84,7 @@
   };
 
   // 是否显示切换框架结构
-  const myPattern = ref('classic');
+  const myPattern = ref(appStore.themelist);
 
   // 主题配置
   const disTheme = ref(false);
@@ -110,7 +110,7 @@
     if (newValue.theme === 'dark') {
       changefooter.value = '#262323;';
     } else {
-      changefooter.value = '#fff;';myPattern
+      changefooter.value = '#fff;';
     }
   });
   // 初始化默认主题

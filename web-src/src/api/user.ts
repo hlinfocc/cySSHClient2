@@ -1,8 +1,9 @@
 import axios from 'axios';
 import { UserInfo } from '@/store/modules/user/types';
+import { request } from '@/utils/request';
 
 export interface LoginData {
-  username: string;
+  account: string;
   password: string;
 }
 
@@ -28,7 +29,10 @@ export interface UserData {
 }
 
 export function login(data: LoginData) {
-  return axios.post<LoginRes>('/api/user/login', data);
+  return request.post<any>({
+    url:'/api/user/login',
+    data
+  });
 }
 export function loginMail(data: LoginDataMail) {
   return axios.post<LoginRes>('/api/mail/login', data);
@@ -39,11 +43,11 @@ export function logout() {
 }
 
 export function getUserInfo() {
-  return axios.get<UserInfo>(`/api/user/userInfo`);
+  return axios.get<LoginRes>(`/api/user/userInfo`);
 }
 
 export function updateUserInfo(data: UserInfo) {
-  return axios.put<UserInfo>(`/api/user/userInfo`, data);
+  return axios.put<LoginRes>(`/api/user/userInfo`, data);
 }
 
 export function getUserData(data?: UserData) {

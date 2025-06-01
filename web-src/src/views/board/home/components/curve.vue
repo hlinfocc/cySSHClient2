@@ -10,11 +10,19 @@
   import { onMounted, watch, inject, ref, nextTick } from 'vue';
   import { useI18n } from 'vue-i18n';
   import useLocale from '@/hooks/locale';
+  import { homeCount } from '@/api/hostsExtend';
 
   const { t } = useI18n();
   const { currentLocale } = useLocale();
   let echarts = inject<any>('echarts');
   const echartsDom = ref();
+
+  const hcdata = ref({
+    totalCount: 0,
+    cloudCount:0,
+    localCount:0,
+    keysCount:0,
+  });
 
   let option = {
     tooltip: {
@@ -26,23 +34,23 @@
         },
       },
     },
-    legend: {
-      data: [t('home.main.down'), t('home.curve.play'), t('home.curve.page')],
-      top: '10',
-    },
-    dataZoom: [
-      {
-        type: 'inside',
-        start: 10,
-      },
-      {
-        type: 'slider',
-      },
-    ],
+    // legend: {
+    //   data: [t('home.main.down'), t('home.curve.play'), t('home.curve.page')],
+    //   top: '10',
+    // },
+    // dataZoom: [
+    //   {
+    //     type: 'inside',
+    //     start: 10,
+    //   },
+    //   {
+    //     type: 'slider',
+    //   },
+    // ],
     xAxis: [
       {
         type: 'category',
-        data: new Array(20).fill('16:00'),
+        data: ['总主机数量','云主机数量','本地主机数量','密钥数量'],
         axisPointer: {
           type: 'shadow',
         },
@@ -61,48 +69,48 @@
       {
         type: 'value',
         min: 0,
-        max: 50,
+        // max: 50,
         interval: 5,
-        axisLabel: {
-          formatter: '{value} s',
-        },
+        // axisLabel: {
+        //   formatter: '{value} s',
+        // },
       },
-      {
-        type: 'value',
-        min: 0,
-        max: 30,
-        interval: 5,
-        axisLabel: {
-          formatter: '{value}',
-        },
-      },
+      // {
+      //   type: 'value',
+      //   min: 0,
+      //   max: 30,
+      //   interval: 5,
+      //   axisLabel: {
+      //     formatter: '{value}',
+      //   },
+      // },
     ],
     series: [
-      {
-        name: t('home.main.down'),
-        type: 'bar',
-        barWidth: 12,
-        itemStyle: {
-          color: '#4e85f4',
-          barBorderRadius: [5, 5, 0, 0],
-        },
-        tooltip: {
-          valueFormatter(value: any) {
-            return `${value} s`;
-          },
-        },
-        data: [
-          22, 4.9, 7.0, 23.2, 25.6, 16.7, 15.6, 22.2, 12.6, 22.0, 6.4, 33.3, 22,
-          4.9, 7.0, 23.2, 25.6, 16.7, 15.6, 22.2, 12.6, 22.0, 6.4, 33.3, 22,
-          4.9, 7.0, 23.2, 25.6, 16.7, 15.6, 22.2, 12.6, 22.0, 6.4, 33.3,
-        ],
-      },
+      // {
+      //   name: t('home.main.down'),
+      //   type: 'bar',
+      //   barWidth: 12,
+      //   itemStyle: {
+      //     color: '#4e85f4',
+      //     barBorderRadius: [5, 5, 0, 0],
+      //   },
+      //   tooltip: {
+      //     valueFormatter(value: any) {
+      //       return `${value} s`;
+      //     },
+      //   },
+      //   data: [
+      //     22, 4.9, 7.0, 23.2, 25.6, 16.7, 15.6, 22.2, 12.6, 22.0, 6.4, 33.3, 22,
+      //     4.9, 7.0, 23.2, 25.6, 16.7, 15.6, 22.2, 12.6, 22.0, 6.4, 33.3, 22,
+      //     4.9, 7.0, 23.2, 25.6, 16.7, 15.6, 22.2, 12.6, 22.0, 6.4, 33.3,
+      //   ],
+      // },
       {
         name: t('home.curve.play'),
         type: 'line',
         smooth: true,
         showSymbol: false,
-        yAxisIndex: 1,
+        // yAxisIndex: 1,
         lineStyle: {
           normal: {
             color: '#5f45ff',
@@ -135,59 +143,67 @@
           },
         },
         data: [
-          22, 4.9, 7.0, 23.2, 25.6, 16.7, 15.6, 22.2, 12.6, 22.0, 6.4, 3.3, 22,
-          4.9, 7.0, 23.2, 25.6, 16.7, 15.6, 22.2, 12.6, 22.0, 6.4, 3.3, 22, 4.9,
-          7.0, 23.2, 25.6, 16.7, 15.6, 22.2, 12.6, 22.0, 6.4, 33.3,
+          22, 4.9, 7.0, 23.2
         ],
       },
-      {
-        name: t('home.curve.page'),
-        type: 'line',
-        smooth: true,
-        showSymbol: false,
-        yAxisIndex: 1,
-        lineStyle: {
-          normal: {
-            color: '#ff9e03',
-          },
-        },
-        areaStyle: {
-          color: {
-            type: 'linear',
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [
-              {
-                offset: 0,
-                color: 'rgba(226, 210, 66,0.2)',
-              },
-              {
-                offset: 1,
-                color: 'rgba(58,132,255, 0)',
-              },
-            ],
-            global: false,
-          },
-        },
-        tooltip: {
-          valueFormatter(value: any) {
-            return value;
-          },
-        },
-        data: [
-          22, 9, 17.0, 27.2, 15.6, 26.7, 25.6, 22.2, 12.6, 22.0, 26.4, 13.3, 22,
-          24.9, 12.0, 23.2, 25.6, 26.7, 25.6, 22.2, 22.6, 22.0, 26.4, 23.3, 22,
-          24, 27.0, 13.2, 15.6, 16.7, 11.6, 22.2, 22.6, 32.0, 16.4, 13.3,
-        ],
-      },
+      // {
+      //   name: t('home.curve.page'),
+      //   type: 'line',
+      //   smooth: true,
+      //   showSymbol: false,
+      //   yAxisIndex: 1,
+      //   lineStyle: {
+      //     normal: {
+      //       color: '#ff9e03',
+      //     },
+      //   },
+      //   areaStyle: {
+      //     color: {
+      //       type: 'linear',
+      //       x: 0,
+      //       y: 0,
+      //       x2: 0,
+      //       y2: 1,
+      //       colorStops: [
+      //         {
+      //           offset: 0,
+      //           color: 'rgba(226, 210, 66,0.2)',
+      //         },
+      //         {
+      //           offset: 1,
+      //           color: 'rgba(58,132,255, 0)',
+      //         },
+      //       ],
+      //       global: false,
+      //     },
+      //   },
+      //   tooltip: {
+      //     valueFormatter(value: any) {
+      //       return value;
+      //     },
+      //   },
+      //   data: [
+      //     22, 9, 17.0, 27.2, 15.6, 26.7, 25.6, 22.2, 12.6, 22.0, 26.4, 13.3, 22,
+      //     24.9, 12.0, 23.2, 25.6, 26.7, 25.6, 22.2, 22.6, 22.0, 26.4, 23.3, 22,
+      //     24, 27.0, 13.2, 15.6, 16.7, 11.6, 22.2, 22.6, 32.0, 16.4, 13.3,
+      //   ],
+      // },
     ],
   };
 
-  onMounted(() => {
+  const loadQty = async()=>{
+    await homeCount().then(async(res:any)=>{
+      if(res.code===200){
+        hcdata.value = res.data;
+      }
+    })
+  }
+
+  onMounted(async() => {
     const chartDom = echartsDom.value;
     const myChart = echarts.init(chartDom as any);
+    await loadQty();
+    option.series[0].data = [hcdata.value.totalCount,hcdata.value.cloudCount,hcdata.value.localCount,hcdata.value.keysCount];
     option && myChart.setOption(option);
     window.addEventListener('resize', () => {
       myChart.resize();
@@ -222,7 +238,7 @@
 <style scoped lang="less">
   .curve {
     width: 100%;
-    height: 491px;
+    height: 580px;
     margin-top: 2%;
     background: #fff;
     border-radius: 6px;

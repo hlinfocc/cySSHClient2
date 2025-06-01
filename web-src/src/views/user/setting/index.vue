@@ -3,7 +3,6 @@
     <Breadcrumb :items="['menu.user', 'menu.user.setting']" />
     <div class="general-card">
       <div class="general-top">
-        <headtop></headtop>
       </div>
       <div class="general-contain">
         <setFrom ref="setFormRef"></setFrom>
@@ -29,7 +28,6 @@
   import { Button as TinyButton, Modal } from '@opentiny/vue';
   import { getSimpleDate } from '@/utils/time';
   import { useUserStore } from '@/store';
-  import headtop from '../../form/step/components/head.vue';
   import setFrom from './components/set-from.vue';
 
   const { t } = useI18n();

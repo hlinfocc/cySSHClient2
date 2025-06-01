@@ -10,15 +10,15 @@
             <div class="num">
               <div class="up">
                 <span class="left">{{ $t('home.main.one') }}</span>
-                <span id="up" class="right">
+                <!-- <span id="up" class="right">
                   {{ $t('home.main.day') }}
                   <img src="@/assets/images/home-up.png" class="image" />
                   <span>0.88%</span>
-                </span>
+                </span> -->
               </div>
               <div class="down">
-                <span class="left">3.23</span>
-                <span class="right">&nbsp;/ S</span>
+                <span class="left">{{ hcdata.totalCount }}</span>
+                <span class="right">&nbsp;/ 台</span>
               </div>
             </div>
           </div>
@@ -30,16 +30,16 @@
             </div>
             <div class="num">
               <div class="up">
-                <span class="left">DOM Ready</span>
-                <span id="down" class="right">
+                <span class="left">{{ $t('home.main.cloud') }}</span>
+                <!-- <span id="down" class="right">
                   {{ $t('home.main.day') }}
                   <img src="@/assets/images/home-down.png" class="image" />
                   <span>0.88%</span>
-                </span>
+                </span> -->
               </div>
               <div class="down">
-                <span class="left">1.56</span>
-                <span class="right">&nbsp;/ S</span>
+                <span class="left">{{ hcdata.cloudCount }}</span>
+                <span class="right">&nbsp;/ 台</span>
               </div>
             </div>
           </div>
@@ -52,15 +52,15 @@
             <div class="num">
               <div class="up">
                 <span class="left">{{ $t('home.main.up') }}</span>
-                <span id="up" class="right">
+                <!-- <span id="up" class="right">
                   {{ $t('home.main.day') }}
                   <img src="@/assets/images/home-up.png" class="image" />
                   <span>0.88%</span>
-                </span>
+                </span> -->
               </div>
               <div class="down">
-                <span class="left">3.69</span>
-                <span class="right">&nbsp;/ S</span>
+                <span class="left">{{ hcdata.localCount }}</span>
+                <span class="right">&nbsp;/ 台</span>
               </div>
             </div>
           </div>
@@ -73,15 +73,15 @@
             <div class="num">
               <div class="up">
                 <span class="left">{{ $t('home.main.down') }}</span>
-                <span id="down" class="right">
+                <!-- <span id="down" class="right">
                   {{ $t('home.main.day') }}
                   <img src="@/assets/images/home-down.png" class="image" />
                   <span>0.88%</span>
-                </span>
+                </span> -->
               </div>
               <div class="down">
-                <span class="left">0.69</span>
-                <span class="right">&nbsp;/ S</span>
+                <span class="left">{{ hcdata.keysCount }}</span>
+                <span class="right">&nbsp;/ 个</span>
               </div>
             </div>
           </div>
@@ -97,6 +97,25 @@
     Row as TinyRow,
     Col as TinyCol,
   } from '@opentiny/vue';
+  import { homeCount } from '@/api/hostsExtend';
+  import { onMounted, ref } from 'vue';
+
+  const hcdata = ref({
+    totalCount: 0,
+    cloudCount:0,
+    localCount:0,
+    keysCount:0,
+  });
+  const loadQty = ()=>{
+    homeCount().then((res:any)=>{
+      if(res.code===200){
+        hcdata.value = res.data;
+      }
+    })
+  }
+  onMounted(()=>{
+    loadQty();
+  })
 </script>
 
 <style scoped lang="less">
@@ -200,3 +219,4 @@
     }
   }
 </style>
+@/api/hostsExtend

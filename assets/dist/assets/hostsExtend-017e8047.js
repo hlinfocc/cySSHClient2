@@ -1,0 +1,1 @@
+import{a as n}from"./axios-7a713374.js";function e(t){return n.post("/api/hostExtent/list",t)}function s(t){return n.post("/api/hostExtent/insert",t)}function a(t){return n.post("/api/hostExtent/update",t)}function r(){return n.get("/api/home/count",{})}export{s as a,a as b,r as h,e as q};

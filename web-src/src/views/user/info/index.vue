@@ -4,7 +4,6 @@
     <div class="container-info">
       <div class="general-card">
         <div class="general-top">
-          <headtop></headtop>
         </div>
         <div class="general-content">
           <infotab></infotab>
@@ -16,7 +15,6 @@
 
 <script lang="ts" setup>
   import infotab from './components/info-tab.vue';
-  import headtop from '../../form/step/components/head.vue';
 </script>
 
 <style scoped lang="less">

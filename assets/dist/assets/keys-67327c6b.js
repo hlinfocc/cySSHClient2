@@ -1,0 +1,1 @@
+import{a as t}from"./axios-7a713374.js";function r(e){return t.post("/api/keys/list",e)}function a(e){return t.delete(`/api/keys/delete?id=${e}`)}function i(e){return t.post("/api/keys/create",e)}export{a as d,i as k,r as q};

@@ -7,7 +7,7 @@
       <LoginRegister />
     </div>
     <div v-if="!display">
-      <LoginMail />
+      <LoginInfo />
     </div>
   </div>
 </template>

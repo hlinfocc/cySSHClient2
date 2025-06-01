@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"strconv"
@@ -12,8 +13,11 @@ import (
 
 	"github.com/hlinfocc/cySSHClient2/pkg/admin"
 	"github.com/hlinfocc/cySSHClient2/pkg/config"
+	"github.com/hlinfocc/cySSHClient2/pkg/crontab"
 	"github.com/hlinfocc/cySSHClient2/pkg/dao/initdb"
+	"github.com/hlinfocc/cySSHClient2/pkg/utils"
 	"github.com/hlinfocc/cySSHClient2/pkg/version"
+	"gopkg.in/yaml.v3"
 )
 
 type Resp struct {
@@ -30,6 +34,11 @@ type Args struct {
 	Profile        string
 	Version        bool
 	Web            bool
+	Socket         bool
+}
+
+type Config struct {
+	WebHook string `yaml:"webhook"` //钉钉机器人Webhook地址
 }
 
 /**
@@ -40,6 +49,7 @@ func initParams() Args {
 	flag.BoolVar(&args.Initialization, "init", args.Initialization, "初始化数据信息")
 	flag.StringVar(&args.Profile, "c", args.Profile, "指定配置文件")
 	flag.BoolVar(&args.Web, "w", args.Web, "启动web服务")
+	flag.BoolVar(&args.Socket, "s", args.Web, "启动Socket服务")
 	flag.BoolVar(&args.Version, "v", args.Version, "显示版本信息")
 
 	flag.Parse()
@@ -49,8 +59,9 @@ func initParams() Args {
 /**
 * 启动Socket服务
  */
-func StartServer() {
+func StartSocketServer() {
 	socketPath := config.GetSocketPath()
+	log.Printf("启动Socket服务……%s", socketPath)
 	os.Remove(socketPath)
 	tcpAddr, err := net.ResolveUnixAddr("unix", socketPath)
 	checkError(err)
@@ -108,18 +119,48 @@ func checkError(err error) {
 	}
 }
 
+func loadConfig() Config {
+	var cfg Config
+	isexist := utils.FileExists("/etc/cysshClient.yml")
+	if isexist {
+		// 读取 YAML 文件
+		yamlFile, err := os.ReadFile("/etc/cysshClient.yml")
+		if err != nil {
+			log.Fatalf("Error reading YAML file: %v", err)
+		}
+		// 解析 YAML 文件
+		err = yaml.Unmarshal(yamlFile, &cfg)
+		if err != nil {
+			log.Fatalf("Error unmarshalling YAML data: %v", err)
+		}
+		// log.Println(cfg)
+	}
+	return cfg
+}
+
 func main() {
 	args := initParams()
 
-	fmt.Println(args.Initialization)
 	if args.Initialization {
 		fmt.Println("初始化数据库")
 		initdb.Init()
 	} else if args.Version {
 		fmt.Println(version.Full())
 	} else if args.Web {
+		cfg := loadConfig()
+		if cfg.WebHook != "" {
+			go crontab.StartCrond(cfg.WebHook)
+		}
 		admin.StartWebServer()
+	} else if args.Socket {
+		StartSocketServer()
 	} else {
-		StartServer()
+		fmt.Println("启动web服务及Socket服务……")
+		cfg := loadConfig()
+		if cfg.WebHook != "" {
+			go crontab.StartCrond(cfg.WebHook)
+		}
+		go StartSocketServer()
+		admin.StartWebServer()
 	}
 }

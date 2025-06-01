@@ -1,0 +1,1 @@
+import{a as s}from"./axios-7a713374.js";function o(t){return s.post("/api/hosts/list",t)}function a(t){return s.delete(`/api/hosts/delete?id=${t}`)}function i(t){return s.post("/api/hosts/insert",t)}function n(t){return s.post("/api/hosts/update",t)}export{i as a,a as d,n as h,o as q};

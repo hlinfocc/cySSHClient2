@@ -68,10 +68,13 @@ export default [
       if (!password) {
         return failResponseWrap(null, '密码不能为空', 'InvalidParameter');
       }
+      console.log("username>>>>>>",username);
+      console.log("password>>>>>",password);
+      console.log("ffffffff>>>>>",(username === 'admin' && password === '123456') ||
+      (username === registerUser.username &&
+        password === registerUser.password));
       if (
-        (username === 'admin@example.com' && password === 'admin') ||
-        (username === registerUser.username &&
-          password === registerUser.password)
+        (username === 'admin' && password === '123456') || (username === registerUser.username && password === registerUser.password)
       ) {
         window.localStorage.setItem('userRole', 'admin');
         return successResponseWrap({

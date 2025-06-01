@@ -4,14 +4,14 @@
       <div class="login">
         <div class="login-header">
           <div class="login-logo">
-            <img
+            <!-- <img
               class="login-logo-img"
-              alt="Tiny Design"
-              src="@/assets/images/pro.png"
-            />
-            <span class="login-logo-text">TinyPro of Vue</span>
+              alt=""
+              src="@/assets/images/logo.png"
+            /> -->
+            <span class="login-logo-text">{{ VITE_GLOBAL_TITLE }}</span>
           </div>
-          <div class="login-desc">{{ $t('login.main.text') }}</div>
+          <div class="login-desc">用户登录中心（V1.0）</div>
         </div>
         <LoginForm />
       </div>
@@ -25,6 +25,8 @@
 <script lang="ts" setup>
   import Footer from '@/components/footer/index.vue';
   import LoginForm from './components/login-form.vue';
+  // @ts-ignore
+  const { VITE_GLOBAL_TITLE } = import.meta.env;
 </script>
 
 <style lang="less" scoped>
@@ -33,7 +35,7 @@
     flex-direction: column;
     width: 100vw;
     height: 100vh;
-    background-image: url('@/assets/images/img_log.png');
+    background-image: url('@/assets/images/login-bg.jpg');
     background-size: 100% 100%;
   }
 
@@ -74,7 +76,7 @@
         display: inline-block;
         color: rgba(0, 0, 0, 0.7);
         font-weight: bold;
-        font-size: 30px;
+        font-size: 25px;
         vertical-align: middle;
       }
     }

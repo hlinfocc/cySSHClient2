@@ -1,6 +1,6 @@
 {
   "name": "cyssh-admin",
-  "description": "基于Linux的主机管理ssh远程登录系统",
+  "description": "沁芳Linux远程主机管理系统",
   "version": "1.0.0",
   "private": true,
   "author": "Tiny Team",
@@ -43,6 +43,7 @@
     "moment": "^2.29.4",
     "nprogress": "^1.0.0-1",
     "pinia": "2.1.7",
+    "qs": "^6.13.0",
     "query-string": "^8.1.0",
     "vue": "^3.3.7",
     "vue-eslint-parser": "^9.3.2",

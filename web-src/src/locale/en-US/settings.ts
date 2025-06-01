@@ -13,7 +13,7 @@ export default {
   'settings.footer': 'fashion mode',
   'settings.colorWeek': 'Theme Configuration',
   'settings.alertContent':
-    'After the configuration is only temporarily effective, if you want to really affect the project, click the "Copy Settings" button below and replace the configuration in settings.json.',
+    'After the configuration is only temporarily effective.',
   'settings.copySettings': 'Copy Settings',
   'settings.copySettings.message':
     'Copy succeeded, please paste to file src/settings.json.',

@@ -7,16 +7,20 @@ import (
 	"strconv"
 
 	"github.com/hlinfocc/cySSHClient2/pkg/dao/entity"
+	hostextent "github.com/hlinfocc/cySSHClient2/pkg/dao/hostExtent"
 	"github.com/hlinfocc/cySSHClient2/pkg/dao/hostlist"
 	"github.com/hlinfocc/cySSHClient2/pkg/dao/initdb"
 	"github.com/hlinfocc/cySSHClient2/pkg/dao/keylist"
+	userinfolist "github.com/hlinfocc/cySSHClient2/pkg/dao/userInfoList"
+	"github.com/hlinfocc/cySSHClient2/pkg/datavo"
 	"github.com/hlinfocc/cySSHClient2/pkg/errors"
 	"github.com/hlinfocc/cySSHClient2/pkg/utils"
+	sm3utils "github.com/hlinfocc/cySSHClient2/pkg/utils/sm3Utils"
 	"github.com/jedib0t/go-pretty/v6/table"
 )
 
 func RenderHostList() {
-	hostlist, err := hostlist.QueryHostlist()
+	hostlist, _, err := hostlist.QueryHostlist(0, 0, "", "", false)
 	errors.CheckError(err)
 	t := table.NewWriter()
 	header := table.Row{"ID", "Description", "Port", "Host", "ssh identity_file"}
@@ -28,6 +32,45 @@ func RenderHostList() {
 	}
 	t.AppendRows(rows)
 	fmt.Println(t.Render())
+}
+
+func QueryHostsList(page int, limit int, desc string, hostIp string, hostExtent bool) datavo.HostResp {
+	hostlist, total, err := hostlist.QueryHostlist(page, limit, desc, hostIp, hostExtent)
+	errors.CheckError(err)
+	res := datavo.HostResp{
+		Code:  200,
+		Msg:   "获取成功",
+		Data:  hostlist,
+		Count: total,
+	}
+	return res
+}
+
+func Save(hostdata *entity.Sshhostlist, izInsert bool) datavo.HostResp {
+	var rs bool
+	res := datavo.HostResp{
+		Code:  200,
+		Msg:   "保存成功",
+		Count: 1,
+	}
+	if izInsert {
+		rs = hostlist.Insert(hostdata)
+	} else {
+		if hostdata.Id == 0 {
+			res.Code = 500
+			res.Msg = "保存失败，参数异常，ID不能为空"
+			res.Count = 0
+			return res
+		}
+		rs = hostlist.Update(hostdata)
+	}
+
+	if !rs {
+		res.Code = 500
+		res.Msg = "保存失败"
+		res.Count = 0
+	}
+	return res
 }
 
 func AddHost() (*entity.Sshhostlist, bool) {
@@ -92,7 +135,9 @@ func AddHost() (*entity.Sshhostlist, bool) {
 		rs := hostlist.Insert(&hostdata)
 		return &hostdata, rs
 	} else {
-		return &hostdata, false
+		// 当数据库不可写时候，采用网络方式
+		rs := utils.RemoteRequest("/api/hosts/insert", hostdata, "POST")
+		return &hostdata, rs
 	}
 }
 
@@ -146,7 +191,8 @@ func UpdateHost(id int) (*entity.Sshhostlist, bool) {
 		rs := hostlist.Update(data)
 		return data, rs
 	} else {
-		return data, false
+		rs := utils.RemoteRequest("/api/hosts/update", data, "POST")
+		return data, rs
 	}
 }
 
@@ -175,11 +221,19 @@ func RenderKeyList() {
 func QueryKeyOneById(id int) (*entity.Sshkeylist, error) {
 	return keylist.QueryOne(id)
 }
-func DeleteKeyById(id int) bool {
-	return keylist.Delete(id)
+func DeleteKeyById(id int, commandLine bool) (bool, string) {
+	if commandLine && !initdb.CheckDBIsWritableBool() {
+		params := map[string]int{
+			"id": id,
+		}
+		rs := utils.RemoteRequest("/api/keys/insert", params, "DELETE")
+		return rs, ""
+	} else {
+		return keylist.Delete(id)
+	}
 }
 
-func AddKeyInfo() bool {
+func AddKeyInfoLocal() bool {
 	keyPath := utils.InputString("请输入ssh密钥对私钥路径[如: ~/.ssh/id_rsa]")
 
 	if len(keyPath) > 0 && !utils.FileExists(keyPath) {
@@ -211,5 +265,231 @@ func AddKeyInfo() bool {
 
 	fileName := path.Base(keyPath)
 	data.Keyname = fileName
-	return keylist.Insert(&data)
+	if initdb.CheckDBIsWritableBool() {
+		return keylist.Insert(&data)
+	} else {
+		rs := utils.RemoteRequest("/api/keys/insert", data, "POST")
+		return rs
+	}
+}
+func AddKeyInfo() bool {
+	keyName := utils.InputString("请输入ssh密钥名称或描述[如: id_rsa]:")
+	if len(keyName) <= 0 {
+		keyName = "id_rsa"
+	}
+	keyPasswd := utils.InputString("请输入ssh密钥密码[可以为空]:")
+	if len(keyPasswd) <= 0 {
+		keyPasswd = ""
+	}
+	privateKey, publicKey, err := utils.Sshkeygen(keyPasswd)
+
+	if err == nil {
+		insertData := &entity.Sshkeylist{}
+		insertData.Keyname = keyName
+		insertData.Privatekey = privateKey
+		insertData.Publickey = publicKey
+		if initdb.CheckDBIsWritableBool() {
+			return keylist.Insert(insertData)
+		} else {
+			return utils.RemoteRequest("/api/keys/insert", insertData, "POST")
+		}
+	} else {
+		fmt.Println("生成密钥失败：", err.Error())
+		return false
+	}
+}
+
+func QueryKeysList(page int, limit int) datavo.KeysResp {
+	list, total, err := keylist.QueryKeylistPage(page, limit)
+	errors.CheckError(err)
+	res := datavo.KeysResp{
+		Code:  200,
+		Msg:   "获取成功",
+		Data:  list,
+		Count: total,
+	}
+	if err != nil {
+		res.Code = 500
+		res.Msg = "获取失败"
+	}
+	return res
+}
+func SaveKeys(hostdata *entity.Sshkeylist, izInsert bool) datavo.HostResp {
+	var rs bool
+	res := datavo.HostResp{
+		Code:  200,
+		Msg:   "保存成功",
+		Count: 1,
+	}
+	if izInsert {
+		rs = keylist.Insert(hostdata)
+	} else {
+		if hostdata.Id == 0 {
+			res.Code = 500
+			res.Msg = "保存失败，参数异常，ID不能为空"
+			res.Count = 0
+			return res
+		}
+		rs = keylist.Update(hostdata)
+	}
+
+	if !rs {
+		res.Code = 500
+		res.Msg = "保存失败"
+		res.Count = 0
+	}
+	return res
+}
+func CreateKeys(data *datavo.CreateSshKeyParams) datavo.HostResp {
+	var rs bool
+	res := datavo.HostResp{
+		Code:  200,
+		Msg:   "保存成功",
+		Count: 1,
+	}
+	fmt.Println("ck:", data.Passwd)
+	privateKey, publicKey, err := utils.Sshkeygen(data.Passwd)
+
+	if err == nil {
+		insertData := &entity.Sshkeylist{}
+		insertData.Keyname = data.Keyname
+		insertData.Privatekey = privateKey
+		insertData.Publickey = publicKey
+		rs = keylist.Insert(insertData)
+	} else {
+		res.Code = 500
+		res.Msg = err.Error()
+		res.Count = 0
+		return res
+	}
+
+	if !rs {
+		res.Code = 500
+		res.Msg = "保存失败"
+		res.Count = 0
+	}
+	return res
+}
+
+func HomeCount() any {
+	hostQty := hostlist.CountTotal()
+	keysQty := keylist.CountTotal()
+	heQty := hostextent.CountTotal()
+	var homeCountResp = datavo.HomeCountResp{
+		TotalCount: hostQty,
+		KeysCount:  keysQty,
+		CloudCount: heQty,
+		LocalCount: hostQty - heQty,
+	}
+	res := datavo.UserResp[datavo.HomeCountResp]{
+		Code: 200,
+		Msg:  "获取成功",
+		Data: homeCountResp,
+	}
+	return res
+}
+
+func QueryHostExtentList(page int, limit int) datavo.PubResp[entity.HostExtent] {
+	list, total, err := hostextent.Querylist(page, limit, -1)
+	errors.CheckError(err)
+	res := datavo.PubResp[entity.HostExtent]{
+		Code:  200,
+		Msg:   "获取成功",
+		Data:  list,
+		Count: total,
+	}
+	if err != nil {
+		res.Code = 500
+		res.Msg = "获取失败"
+	}
+	return res
+}
+func SaveHostExtent(hostdata *entity.HostExtent, izInsert bool) datavo.HostResp {
+	var rs bool
+	res := datavo.HostResp{
+		Code:  200,
+		Msg:   "保存成功",
+		Count: 1,
+	}
+	hostobj, herr := hostlist.QueryOne(hostdata.Id)
+	if herr != nil {
+		res.Code = 500
+		res.Msg = "获取主机异常，请重试"
+		res.Count = 0
+		return res
+	}
+	hostdata.Host = hostobj.Host + hostobj.Port
+	if izInsert {
+		rs = hostextent.Insert(hostdata)
+	} else {
+		if hostdata.Id == 0 {
+			res.Code = 500
+			res.Msg = "保存失败，参数异常，ID不能为空"
+			res.Count = 0
+			return res
+		}
+		rs = hostextent.Update(hostdata)
+	}
+
+	if !rs {
+		res.Code = 500
+		res.Msg = "保存失败"
+		res.Count = 0
+	}
+	return res
+}
+
+func DeleteHostExtentById(id int, commandLine bool) (bool, string) {
+	if commandLine && !initdb.CheckDBIsWritableBool() {
+		params := map[string]int{
+			"id": id,
+		}
+		rs := utils.RemoteRequest("/api/hostExtent/insert", params, "DELETE")
+		return rs, ""
+	} else {
+		return hostextent.Delete(id), ""
+	}
+}
+
+func SaveUserInfo(hostdata *entity.UserInfo, izInsert bool) datavo.HostResp {
+	var rs bool
+	res := datavo.HostResp{
+		Code:  200,
+		Msg:   "保存成功",
+		Count: 1,
+	}
+	if izInsert {
+		rs = userinfolist.Insert(hostdata)
+	} else {
+		if hostdata.Id == 0 {
+			res.Code = 500
+			res.Msg = "保存失败，参数异常，ID不能为空"
+			res.Count = 0
+			return res
+		}
+		rs = userinfolist.Update(hostdata)
+	}
+
+	if !rs {
+		res.Code = 500
+		res.Msg = "保存失败"
+		res.Count = 0
+	}
+	return res
+}
+func UserLoginCheck(loginParams datavo.LoginParams) (int, string, entity.UserInfo) {
+	var rs bool
+	userInfo, err := userinfolist.FetchByAccount(loginParams.UserName)
+	if err != nil {
+		return 500, "用户名或密码错误", entity.UserInfo{}
+	}
+	rs = sm3utils.VerifySaltedHash(loginParams.Passwd, userInfo.Passwd)
+	if !rs {
+		return 500, "登录失败，用户名或密码错误", entity.UserInfo{}
+	}
+	return 200, "登录失败，用户名或密码错误", *userInfo
+}
+
+func QueryUserInfoOneById(id int) (*entity.UserInfo, error) {
+	return userinfolist.QueryOne(id)
 }

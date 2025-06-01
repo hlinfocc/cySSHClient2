@@ -11,29 +11,14 @@ import { setToken, clearToken } from '@/utils/auth';
 import { removeRouteListener } from '@/utils/route-listener';
 import { UserState, UserInfo } from './types';
 
+// 从 localStorage 加载初始状态
+const loadInitialState = (): UserState => {
+  const savedState = localStorage.getItem('USER_INFO_STORE_STATE');
+  return savedState ? JSON.parse(savedState) : {} as any;
+};
+
 const useUserStore = defineStore('user', {
-  state: (): UserState => ({
-    userId: '10000',
-    username: 'admin',
-    department: 'Tiny-Vue-Pro',
-    employeeType: 'social recruitment',
-    job: 'Front end',
-    probationStart: '2021-04-19',
-    probationEnd: '2021-10-15',
-    probationDuration: '180',
-    protocolStart: '2021-04-19',
-    protocolEnd: '2024-04-19',
-    address: '',
-    status: '',
-    role: '',
-    sort: 1,
-    startTime: '',
-    endTime: '',
-    filterStatus: [],
-    filterType: [],
-    submit: false,
-    reset: false,
-  }),
+  state: (): UserState => loadInitialState(),
 
   getters: {
     userInfo(state: UserState): UserState {
@@ -42,20 +27,29 @@ const useUserStore = defineStore('user', {
   },
 
   actions: {
+    // 保存状态到 localStorage
+    saveState() {
+      localStorage.setItem('USER_INFO_STORE_STATE', JSON.stringify(this.$state));
+    },
+
     switchRoles() {
       return new Promise((resolve) => {
         this.role = this.role === 'user' ? 'admin' : 'user';
+        this.saveState();
         resolve(this.role);
       });
     },
+
     // Set user's information
     setInfo(partial: Partial<UserState>) {
       this.$patch(partial);
+      this.saveState();
     },
 
     // Reset user's information
     resetInfo() {
       this.$reset();
+      localStorage.removeItem('USER_INFO_STORE_STATE');
     },
 
     // Reset filter information
@@ -64,26 +58,35 @@ const useUserStore = defineStore('user', {
       this.endTime = '';
       this.filterStatus = [];
       this.filterType = [];
+      this.saveState();
     },
 
     // Get user's information
     async info() {
       const res = await getUserInfo();
-      this.setInfo(res.data);
+      console.log("info:", res);
+      if (res) {
+        this.setInfo(res.data.userInfo);
+      }
     },
 
     async updateInfo(data: UserInfo) {
       const res = await updateUserInfo(data);
-      this.setInfo(res.data);
+      this.setInfo(res.data.userInfo);
     },
 
     // Login
     async login(loginForm: LoginData) {
       try {
-        const res = await userLogin(loginForm);
-        const { token, userInfo } = res.data;
-        setToken(token);
-        this.setInfo(userInfo);
+        console.log("LoginData:", loginForm);
+        await userLogin(loginForm).then((res) => {
+          console.log("res:", res);
+          const { token, userInfo } = res;
+          setToken(token);
+          this.setInfo(userInfo);
+        }).catch((e) => {
+          console.log("e", e);
+        });
       } catch (err) {
         clearToken();
         throw err;

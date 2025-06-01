@@ -1,6 +1,7 @@
 const TOKEN_KEY = 'token';
 
 const isLogin = () => {
+  console.log("isLogin>>>>>>>>>>>>",!!localStorage.getItem(TOKEN_KEY));
   return !!localStorage.getItem(TOKEN_KEY);
 };
 

@@ -48,9 +48,9 @@
 
       <div class="global-set-foot">
         <div>
-          <tiny-button type="primary" @click="copySettings">{{
+          <!-- <tiny-button type="primary" @click="copySettings">{{
             $t('settings.copySettings')
-          }}</tiny-button>
+          }}</tiny-button> -->
           <tiny-button @click="cancel">{{ $t('settings.close') }}</tiny-button>
         </div>
       </div>

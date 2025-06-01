@@ -2,12 +2,14 @@ package initdb
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/glebarez/sqlite"
 	"github.com/hlinfocc/cySSHClient2/pkg/config"
 	"github.com/hlinfocc/cySSHClient2/pkg/dao/entity"
 	"github.com/hlinfocc/cySSHClient2/pkg/errors"
 	"github.com/hlinfocc/cySSHClient2/pkg/utils"
+	sm3utils "github.com/hlinfocc/cySSHClient2/pkg/utils/sm3Utils"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )
@@ -51,6 +53,22 @@ func Init() {
 	err3 := database.AutoMigrate(&entity.UserInfo{})
 	errors.WaringErr(err3)
 
+	err4 := database.AutoMigrate(&entity.HostExtent{})
+	errors.WaringErr(err4)
+
+	nowTime := time.Now()
+	var userInfo = entity.UserInfo{
+		RealName:   "管理员",
+		Account:    "admin",
+		Passwd:     sm3utils.GenerateSaltedHash("123456"),
+		Status:     0,
+		UserType:   0,
+		Role:       "admin",
+		Isdelete:   0,
+		CreateTime: nowTime.Format("2006/01/02 15:04:05"),
+		UpdateTime: nowTime.Format("2006/01/02 15:04:05"),
+	}
+	database.Create(&userInfo)
 }
 
 func GetConn() *gorm.DB {

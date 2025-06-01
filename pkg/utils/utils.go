@@ -2,14 +2,23 @@ package utils
 
 import (
 	"bufio"
+	"bytes"
+	"crypto/sha512"
+	"encoding/json"
 	"fmt"
+	"io"
+	"math/rand"
 	"net"
+	"net/http"
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"syscall"
+	"time"
 
 	"github.com/go-cmd/cmd"
+	"github.com/hlinfocc/cySSHClient2/pkg/datavo"
 	"github.com/hlinfocc/cySSHClient2/pkg/errors"
 )
 
@@ -187,4 +196,139 @@ func String2Int(s string) int {
 		return -1
 	}
 	return res
+}
+
+func RandStringBytes(n int, letter bool) string {
+	letterBytes := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+	if letter {
+		letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	}
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[r.Intn(len(letterBytes))]
+	}
+	return string(b)
+}
+
+// 调用ssh-keygen生成ssh秘钥；
+// 返回第一个为私钥，第二个为公钥
+func Sshkeygen(pwd string) (string, string, error) {
+	var tempPath string
+	keyName := RandStringBytes(10, true)
+	tempRandom, err := os.MkdirTemp("", "cyssh-*")
+	if err == nil {
+		tempPath = tempRandom
+	} else {
+		return "", "", errors.New("创建临时目录失败！")
+	}
+	cmdstr := fmt.Sprintf("/usr/bin/ssh-keygen -t rsa -b 4096 -f %s/%s -N \"%s\" -q", tempPath, keyName, pwd)
+	fmt.Println("cmd:", cmdstr)
+	c := cmd.NewCmd("/usr/bin/bash", "-c", cmdstr)
+	<-c.Start()
+	rs := c.Status().Stdout
+	if len(rs) > 0 {
+		return "", "", errors.New(strings.Join(rs, ";"))
+	}
+	var privatekey string
+	var publickey string
+	if FileExists(fmt.Sprintf("%s/%s", tempPath, keyName)) {
+		privateContent, _ := os.ReadFile(fmt.Sprintf("%s/%s", tempPath, keyName))
+		privatekey = string(privateContent)
+	}
+	if FileExists(fmt.Sprintf("%s/%s", tempPath, keyName)) {
+		publicContent, _ := os.ReadFile(fmt.Sprintf("%s/%s", tempPath, keyName))
+		publickey = string(publicContent)
+	}
+	os.RemoveAll(tempPath)
+	return privatekey, publickey, nil
+}
+
+func Sha3(data string) string {
+	h := sha512.New()
+	h.Write([]byte(data))
+	hash := h.Sum(nil)
+	return string(hash)
+}
+
+func RemoteRequest(url string, params any, requestMethod string) bool {
+	portPath := "/var/run/hlinfo-cyssh-server.port"
+	if FileExists(portPath) {
+		portData, perr := os.ReadFile(portPath)
+		if perr != nil {
+			return errors.ReturnError(perr)
+		}
+		reqUrl := fmt.Sprintf("http://127.0.0.1:%s/%s", string(portData), url)
+
+		// 创建自定义客户端
+		client := &http.Client{
+			Timeout: time.Second * 10,
+		}
+
+		var req *http.Request
+		var err error
+
+		// 根据请求方法创建不同的请求
+		switch requestMethod {
+		case "POST":
+			jsonData, err := json.Marshal(params)
+			if err != nil {
+				return errors.ReturnError(err)
+			}
+			req, err = http.NewRequest("POST", reqUrl, bytes.NewBuffer(jsonData))
+			if err != nil {
+				return errors.ReturnError(err)
+			}
+			req.Header.Set("Content-Type", "application/json")
+
+		case "GET", "DELETE":
+			req, err = http.NewRequest(requestMethod, reqUrl, nil)
+			if err != nil {
+				return errors.ReturnError(err)
+			}
+			// 将参数添加到URL查询字符串中
+			if params != nil {
+				query := req.URL.Query()
+				paramMap, ok := params.(map[string]string)
+				if ok {
+					for k, v := range paramMap {
+						query.Add(k, v)
+					}
+					req.URL.RawQuery = query.Encode()
+				}
+			}
+
+		default:
+			return errors.ReturnError(errors.New("不支持的请求方法"))
+		}
+
+		// 发送请求
+		resp, err := client.Do(req)
+		if err != nil {
+			fmt.Println("Request error:", err)
+			return errors.ReturnError(err)
+		}
+		defer resp.Body.Close()
+
+		// 处理响应
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println("Read response error:", err)
+			return errors.ReturnError(err)
+		}
+		var simpResp datavo.SimpResp
+		err = json.Unmarshal(body, &simpResp)
+		if err != nil {
+			fmt.Println("解析JSON失败:", err)
+			return errors.ReturnError(err)
+		}
+		if resp.StatusCode == 200 {
+			if simpResp.Code == 200 {
+				return true
+			}
+			return errors.ReturnError(errors.New(simpResp.Msg))
+		}
+		return errors.ReturnError(errors.New("请求失败"))
+	}
+	return errors.ReturnError(errors.New("后台服务未启动"))
 }

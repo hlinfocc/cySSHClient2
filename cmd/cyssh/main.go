@@ -85,12 +85,12 @@ func main() {
 	} else if args.KeyList {
 		dbhandle.RenderKeyList()
 	} else if args.KeyAdd {
-		dbhandle.AddKeyInfo()
+		dbhandle.AddKeyInfoLocal()
 	} else if args.KeyGen {
-
+		dbhandle.AddKeyInfo()
 	} else if args.KeyDel {
 		keyId := utils.InputInt("请输入ssh密钥对ID")
-		dbhandle.DeleteKeyById(keyId)
+		dbhandle.DeleteKeyById(keyId, true)
 	} else if args.KeySync {
 		fmt.Println("adddddd")
 	} else if args.Version {

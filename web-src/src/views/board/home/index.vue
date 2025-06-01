@@ -4,9 +4,9 @@
     <div class="contain">
       <Main></Main>
       <Curve></Curve>
-      <Falls></Falls>
-      <Round></Round>
-      <Region></Region>
+      <!-- <Falls></Falls> -->
+      <!-- <Round></Round> -->
+      <!-- <Region></Region> -->
     </div>
   </div>
 </template>

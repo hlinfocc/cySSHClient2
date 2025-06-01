@@ -3,24 +3,21 @@
     <div class="left-side">
       <div style="display: flex; align-items: center">
         <img
-          src="@/assets/images/opentiny-logo.png"
+          class="logo"
+          src="@/assets/images/logo.png"
           alt="logo"
-          @click="jumpUrl"
         />
-        <h5 @click="jumpUrl">OpenTiny</h5>
-        <div class="divider"></div>
-        <img class="vue-icon" alt="logo" src="@/assets/images/pro.png" />
-        <h4>TinyPro of Vue</h4>
+        <h5>{{ VITE_GLOBAL_TITLE }}</h5>
       </div>
     </div>
     <ul class="right-side">
-      <li>
+      <!-- <li>
         <input
           id="navbar-search"
           class="input-icon"
           :placeholder="$t('setting.input.search')"
         />
-      </li>
+      </li> -->
       <li>
         <div class="divider"></div>
       </li>
@@ -39,9 +36,9 @@
         </div>
       </li>
 
-      <li>
+      <!-- <li>
         <span @click="help">{{ $t('settings.navbar.help') }}</span>
-      </li>
+      </li> -->
       <li>
         <span @click="setVisible">{{ $t('settings.title') }}</span>
       </li>
@@ -85,7 +82,8 @@
   import { LOCALE_OPTIONS } from '@/locale';
   import useLocale from '@/hooks/locale';
   import useUser from '@/hooks/user';
-
+  // @ts-ignore
+  const { VITE_GLOBAL_TITLE } = import.meta.env;
   const i18 = useI18n();
   const iconReplace = IconReplace();
   const iconUser = IconUser();
@@ -115,9 +113,9 @@
 
   // 用户设置
   const userlist = [
-    { label: 'messageBox.switchRoles', value: 1 },
-    { label: 'messageBox.userCenter', value: 2 },
-    { label: 'messageBox.userSettings', value: 3 },
+    // { label: 'messageBox.switchRoles', value: 1 },
+    // { label: 'messageBox.userCenter', value: 2 },
+    // { label: 'messageBox.userSettings', value: 3 },
     { label: 'messageBox.logout', value: 4 },
   ];
 
@@ -284,10 +282,11 @@
 
     .trigger-user {
       position: absolute;
-      bottom: -102px;
+      bottom: -29px;
       display: none;
       width: 100px;
       margin-left: -43px;
+      box-shadow: 0px 0px 6px 2px rgba(0, 0, 0, 0.2);
     }
 
     .trigger-user:hover {
@@ -330,6 +329,9 @@
         background-color: #f5f6f7;
       }
     }
+  }
+  .logo{
+    width: 55px;
   }
 </style>
 
