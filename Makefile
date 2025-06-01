@@ -4,7 +4,7 @@ LDFLAGS := -s -w
 
 all: fmt build
 
-build: cyssh cyscp cysshserver cymain
+build: cyssh cyscp cysshserver
 
 
 fmt:

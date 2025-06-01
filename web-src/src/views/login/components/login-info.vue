@@ -28,11 +28,11 @@
       </tiny-form-item>
 
       <div class="login-form-options">
-        <tiny-checkbox>{{ $t('login.form.rememberPassword') }}</tiny-checkbox>
+        <tiny-checkbox v-model="rememberAccountVal" :true-label="1" :false-label="0">{{ $t('login.form.rememberAccount') }}</tiny-checkbox>
         <div>
-          <tiny-link type="primary">
+          <!-- <tiny-link type="primary">
             {{ $t('login.form.forgetPassword') }}
-          </tiny-link>
+          </tiny-link> -->
           <!-- <tiny-link type="primary" class="divide-line">|</tiny-link> -->
           <!-- <tiny-link type="primary" @click="typeChange">
             {{ $t('login.form.registration') }}
@@ -54,7 +54,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { inject, ref, reactive, computed } from 'vue';
+  import { inject, ref, reactive, computed, onMounted } from 'vue';
   import { useRouter } from 'vue-router';
   import {
     Form as TinyForm,
@@ -76,6 +76,7 @@
   const { loading, setLoading } = useLoading();
   const userStore = useUserStore();
   const loginFormInfo = ref();
+  const rememberAccountVal = ref(-1);
 
   const rules = computed(() => {
     return {
@@ -97,9 +98,8 @@
   });
 
   const loginInfo = reactive({
-    username: 'admin',
-    password: '123456',
-    rememberPassword: true,
+    username: '',
+    password: '',
   });
 
   // 切换模式
@@ -141,7 +141,9 @@
         });
         const { redirect, ...othersQuery } = router.currentRoute.value.query;
         console.log("redirect:>>>>>>",redirect);
-        
+        if(rememberAccountVal.value===1){
+          window.localStorage.setItem("USER_ACCOUNT_CACHE",loginInfo.username);
+        }
         router.push({
           name: redirect?(redirect as string):'Home',
           query: {
@@ -162,6 +164,12 @@
       }
     });
   }
+  onMounted(()=>{
+     let accountCache = window.localStorage.getItem("USER_ACCOUNT_CACHE");
+     if (accountCache){
+      loginInfo.username = accountCache;
+     }
+  });
 </script>
 
 <style lang="less" scoped>
