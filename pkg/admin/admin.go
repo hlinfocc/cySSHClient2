@@ -100,16 +100,15 @@ func StartWebServer() {
 			return
 		}
 		log.Println(loginParams)
-		if loginParams.UserName != "admin" || loginParams.Passwd != "123456" {
-			res := Resp{
-				Code: 402,
-				Msg:  "用户名或密码错误",
-			}
-			ctx.JSON(http.StatusOK, res)
-			return
-		}
 
 		code, msg, user := dbhandle.UserLoginCheck(loginParams)
+		if code != 200 {
+			ctx.JSON(http.StatusOK, Resp{
+				Code: code,
+				Msg:  msg,
+			})
+			return
+		}
 		tokenStr, e := jwtutils.GenJwtToken(user.Id, user.RealName, user.Account, user.Status, user.UserType, user.Role)
 		if e != nil {
 			res := Resp{
