@@ -8,11 +8,14 @@ fi
 cyssh_version=`./bin/cyssh -v`
 echo "build version: $cyssh_version"
 
+if [ -d "./dist" ];then
+    rm -rf ./dist
+fi
+
+mkdir -p ./dist/packages
+
 # cross_compiles
 make -f ./Makefile.cross-compiles
-
-rm -rf ./dist/packages
-mkdir -p ./dist/packages
 
 os_all='linux darwin freebsd'
 arch_all='386 amd64 arm arm64 mips64 mips64le mips mipsle riscv64'
@@ -30,15 +33,15 @@ for os in $os_all; do
         if [ ! -f "./cyscp_${os}_${arch}" ]; then
             continue
         fi
-        if [ ! -f "./cyssh-server_${os}_${arch}" ]; then
+        if [ ! -f "./csc-server_${os}_${arch}" ]; then
             continue
         fi
         mkdir ${cyssh_path}
         mv ./cyssh_${os}_${arch} ${cyssh_path}/cyssh
         mv ./cyscp_${os}_${arch} ${cyssh_path}/cyscp
-        mv ./cyssh-server_${os}_${arch} ${cyssh_path}/cysh-server
+        mv ./csc-server_${os}_${arch} ${cyssh_path}/csc-server
         cp ../LICENSE ${cyssh_path}
-        #cp -rf ../conf/* ${cyssh_path}
+        cp -rf ../install/* ${cyssh_path}
 
         # packages
         cd ./packages
@@ -52,4 +55,9 @@ for os in $os_all; do
     done
 done
 
-cd -
+\cp ./packages/* ./
+
+if [ -d "./packages" ];then
+    \rm -rf ./packages
+fi
+

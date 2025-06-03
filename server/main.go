@@ -51,7 +51,14 @@ func initParams() Args {
 	flag.BoolVar(&args.Web, "w", args.Web, "启动web服务")
 	flag.BoolVar(&args.Socket, "s", args.Web, "启动Socket服务")
 	flag.BoolVar(&args.Version, "v", args.Version, "显示版本信息")
-
+	// 覆盖默认的Usage函数
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "用法: %s [选项]\n\n", os.Args[0])
+		fmt.Fprintln(os.Stderr, "标准选项:")
+		flag.PrintDefaults() // 打印默认帮助信息
+		fmt.Fprintln(os.Stderr, "\n其他:")
+		fmt.Fprintf(os.Stderr, "  * 直接运行也可以启动web服务: %s \n", os.Args[0])
+	}
 	flag.Parse()
 	return args
 }
@@ -160,7 +167,7 @@ func main() {
 		if cfg.WebHook != "" {
 			go crontab.StartCrond(cfg.WebHook)
 		}
-		go StartSocketServer()
+		// go StartSocketServer()
 		admin.StartWebServer()
 	}
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/hlinfocc/cySSHClient2/pkg/dao/dbhandle"
 	"github.com/hlinfocc/cySSHClient2/pkg/errors"
+	"github.com/hlinfocc/cySSHClient2/pkg/service"
 	"github.com/hlinfocc/cySSHClient2/pkg/utils"
 	"github.com/hlinfocc/cySSHClient2/pkg/version"
 )
@@ -92,23 +93,26 @@ func main() {
 		keyId := utils.InputInt("请输入ssh密钥对ID")
 		dbhandle.DeleteKeyById(keyId, true)
 	} else if args.KeySync {
-		fmt.Println("adddddd")
+		dbhandle.RenderHostList()
+		hostId = utils.InputHostId()
+		dbhandle.RenderKeyList()
+		keyId := utils.InputInt("请输入ssh密钥对ID")
+		service.SyncKey2Host(hostId, keyId)
 	} else if args.Version {
 		// 显示版本号
 		fmt.Println(version.Full())
 	} else {
 		if flag.NArg() > 0 {
-			fmt.Println(flag.Args())
 			if hostId <= 0 {
 				dbhandle.RenderHostList()
 				hostId = utils.InputHostId()
 			}
 		} else {
 			dbhandle.RenderHostList()
-			input := utils.InputHostId()
-			fmt.Println(input)
-
+			hostId = utils.InputHostId()
+			fmt.Println(hostId)
 		}
+		service.HostSshHandle(hostId)
 	}
 }
 

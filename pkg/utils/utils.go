@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
@@ -129,6 +130,39 @@ func InputString(msg string) string {
 	scanner.Scan()
 	inputStr := scanner.Text()
 	return inputStr
+}
+
+func ExecuteCommandSSH(args ...string) {
+	// 创建命令
+	cmd := exec.Command("/usr/bin/ssh", args...)
+
+	// 重定向标准输入输出（与当前终端交互）
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	// 执行命令
+	err := cmd.Run()
+	if err != nil {
+		fmt.Printf("SSH 连接失败: %v\n", err)
+		os.Exit(1)
+	}
+}
+func ExecuteCommandAny(cmdPath string, args ...string) {
+	// 创建命令
+	cmd := exec.Command(cmdPath, args...)
+
+	// 重定向标准输入输出（与当前终端交互）
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	// 执行命令
+	err := cmd.Run()
+	if err != nil {
+		fmt.Printf("SSH 连接失败: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 func ExecuteCommandCheckLocale(cmdstr string) int {

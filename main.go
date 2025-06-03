@@ -2,47 +2,23 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"os/user"
 	"regexp"
-
-	"github.com/hlinfocc/cySSHClient2/pkg/config"
-	"github.com/hlinfocc/cySSHClient2/pkg/utils"
 )
 
 func main() {
-	fmt.Println("ok")
-	dbpath := config.GetDbPath()
-	fmt.Println("path:" + dbpath)
-	currentUser, err := user.Current()
-	if err != nil {
-		log.Fatalf(err.Error())
+	// 待匹配的字符串
+	str := "9:/opt/"
+
+	// 编译正则表达式：匹配数字+冒号+任意内容
+	re := regexp.MustCompile(`^(\d+):(.*)$`)
+	// 查找匹配项
+	match := re.FindStringSubmatch(str)
+	if len(match) > 1 {
+		// match[0] 是完整匹配 "9:"
+		// match[1] 是捕获的第一个分组 "9"
+		fmt.Println("提取的数字:", match[1])
+		fmt.Println("提取的数字hou:", match[2])
 	} else {
-		log.Println("ok")
-	}
-	username := currentUser.Username
-
-	fmt.Printf("Username is: %s\n", username)
-	/* t := table.NewWriter()
-	header := table.Row{"ID", "IP", "Num", "PacketsRecv", "PacketLoss", "AvgRtt"}
-
-	t.AppendHeader(header)
-	for i := 1; i <= 5; i++ {
-		row := table.Row{i, fmt.Sprintf("10.0.0.%v", i), i + 4, i, i, "AppendRow"}
-		t.AppendRow(row)
-	} */
-	// fmt.Println(t.Render())
-	// var hostId int
-	// input := utils.InputHostId()
-	// fmt.Println(input)
-	// fmt.Println(hostId)
-	utils.IsSupportZhCn()
-	ip := "321.168.0.1"
-	regex := regexp.MustCompile(`^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$`)
-
-	if regex.MatchString(ip) {
-		fmt.Println("Valid IP address")
-	} else {
-		fmt.Println("Invalid IP address")
+		fmt.Println("未找到匹配项")
 	}
 }

@@ -1,0 +1,20 @@
+[Unit]
+Description=csc-server
+After=network.target
+ 
+[Service]
+Type=simple
+PIDFile=/var/run/csc-server.pid
+ExecStart=/usr/local/CySSHClient/csc-server
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s QUIT $MAINPID
+PrivateTmp=true
+TimeoutStartSec=15
+TimeoutStopSec=15
+LimitNOFILE=10032
+NoNewPrivileges=yes
+WorkingDirectory=/usr/local/CySSHClient
+Restart=always
+ 
+[Install]
+WantedBy=multi-user.target
