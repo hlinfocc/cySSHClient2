@@ -42,7 +42,7 @@
 
       <tiny-form-item size="medium">
         <tiny-button
-          type="primary"
+          type="info"
           class="login-form-btn"
           :loading="loading"
           @click="handleSubmit"
@@ -54,7 +54,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { inject, ref, reactive, computed, onMounted } from 'vue';
+  import { inject, ref, reactive, computed, onMounted,onUnmounted } from 'vue';
   import { useRouter } from 'vue-router';
   import {
     Form as TinyForm,
@@ -135,10 +135,6 @@
           account: loginInfo.username,
           password: loginInfo.password,
         })
-        Modal.message({
-          message: t('login.form.login.success'),
-          status: 'success',
-        });
         const { redirect, ...othersQuery } = router.currentRoute.value.query;
         console.log("redirect:>>>>>>",redirect);
         if(rememberAccountVal.value===1){
@@ -150,25 +146,34 @@
             ...othersQuery,
           },
         });
-      } catch (err) {
-        // Notify({
-        //   type: 'error',
-        //   title: t('login.tip.right'),
-        //   message: t('login.tip.info'),
-        //   position: 'top-right',
-        //   duration: 2000,
-        //   customClass: 'my-custom-cls',
-        // });
+      } catch (err:any) {
+        Modal.message({
+          message: err.message?err.message:'登录失败',
+          status: 'error',
+        });
       } finally {
         setLoading(false);
       }
     });
   }
+  // 回车执行登录
+  const keyDown = (e:any) => {
+    if (e.keyCode === 13) {
+      handleSubmit();
+    }
+  };
+
   onMounted(()=>{
      let accountCache = window.localStorage.getItem("USER_ACCOUNT_CACHE");
      if (accountCache){
       loginInfo.username = accountCache;
      }
+     // 回车执行登录
+    window.addEventListener('keyup', keyDown, false);
+  });
+  onUnmounted(() => {
+    // 取消监听回车登录
+    window.removeEventListener('keyup', keyDown);
   });
 </script>
 

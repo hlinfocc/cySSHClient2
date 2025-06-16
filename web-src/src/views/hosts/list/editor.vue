@@ -69,8 +69,8 @@ import type {HostsType} from '@/api/hosts';
   const fromData = ref<HostsType>({
     id:undefined,
     host:'',
-    port:'',
-    username:'',
+    port:'22',
+    username:'root',
     iskey:0,
     keypath:'',
     hostdesc:''
@@ -103,10 +103,10 @@ import type {HostsType} from '@/api/hosts';
   }
   
   const confirm = () => {
-    
-    console.log("fromData:",fromData.value);
-      if(fromData.value.id){
-        hostsUpdate(fromData.value).then((res:any)=>{
+    let reqData = toRaw(fromData.value)
+    reqData.port = reqData.port + "";
+      if(reqData.id){
+        hostsUpdate(reqData).then((res:any)=>{
           let noteType = 'error';
           if(res.code===200){
             visible.value = false;
@@ -120,11 +120,12 @@ import type {HostsType} from '@/api/hosts';
           })
         })
       }else{
-        hostsInsert(fromData.value).then((res:any)=>{
+        hostsInsert(reqData).then((res:any)=>{
           let noteType = 'error';
           if(res.code===200){
             visible.value = false;
             noteType = 'success';
+            emit("success", true);
           }
           TinyNotify({
             type: noteType,

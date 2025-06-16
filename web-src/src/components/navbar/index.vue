@@ -115,7 +115,7 @@
   const userlist = [
     // { label: 'messageBox.switchRoles', value: 1 },
     // { label: 'messageBox.userCenter', value: 2 },
-    // { label: 'messageBox.userSettings', value: 3 },
+    { label: 'messageBox.userSettings', value: 3 },
     { label: 'messageBox.logout', value: 4 },
   ];
 
@@ -282,7 +282,7 @@
 
     .trigger-user {
       position: absolute;
-      bottom: -29px;
+      bottom: -60px;
       display: none;
       width: 100px;
       margin-left: -43px;

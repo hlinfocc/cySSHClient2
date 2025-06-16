@@ -1,18 +1,19 @@
 export type RoleType = '' | '*' | 'admin' | 'user';
 export interface UserInfo {
-  userId: string;
-  username: string;
-  department?: string;
-  employeeType?: string;
-  job?: string;
-  probationStart?: string;
-  probationEnd?: string;
-  probationDuration?: string;
-  protocolStart?: string;
-  protocolEnd?: string;
-  address?: string;
-  status?: string;
-  role: RoleType;
+  id?:number;  
+  realName: string;
+  account: string;
+  status: number;
+  userType: number;
+  role?: string;
+  lastLoginTime?: string;
+  lastLoginIp?: string;
+  createTime?: string;
+  updateTime?: string;
+  passwd?: string;
+  thatLoginTime?: string;
+  thatLoginIp?: string;
+  isdelete?: number;
 }
 export interface UserFilterData {
   sort?: number;

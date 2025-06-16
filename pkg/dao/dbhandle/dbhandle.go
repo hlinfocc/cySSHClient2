@@ -451,7 +451,7 @@ func DeleteHostExtentById(id int, commandLine bool) (bool, string) {
 	}
 }
 
-func SaveUserInfo(hostdata *entity.UserInfo, izInsert bool) datavo.HostResp {
+func SaveUserInfo(userData *entity.UserInfo, izInsert bool) datavo.HostResp {
 	var rs bool
 	res := datavo.HostResp{
 		Code:  200,
@@ -459,15 +459,19 @@ func SaveUserInfo(hostdata *entity.UserInfo, izInsert bool) datavo.HostResp {
 		Count: 1,
 	}
 	if izInsert {
-		rs = userinfolist.Insert(hostdata)
+		rs = userinfolist.Insert(userData)
 	} else {
-		if hostdata.Id == 0 {
+		if userData.Id == 0 {
 			res.Code = 500
 			res.Msg = "保存失败，参数异常，ID不能为空"
 			res.Count = 0
 			return res
 		}
-		rs = userinfolist.Update(hostdata)
+		if userData.Passwd == "" {
+			user, _ := userinfolist.QueryOne(userData.Id)
+			userData.Passwd = user.Passwd
+		}
+		rs = userinfolist.Update(userData)
 	}
 
 	if !rs {
@@ -477,17 +481,17 @@ func SaveUserInfo(hostdata *entity.UserInfo, izInsert bool) datavo.HostResp {
 	}
 	return res
 }
-func UserLoginCheck(loginParams datavo.LoginParams) (int, string, entity.UserInfo) {
+func UserLoginCheck(loginParams datavo.LoginParams) (int, string, *entity.UserInfo) {
 	var rs bool
 	userInfo, err := userinfolist.FetchByAccount(loginParams.UserName)
 	if err != nil {
-		return 500, "用户名或密码错误", entity.UserInfo{}
+		return 500, "用户名或密码错误", &entity.UserInfo{}
 	}
 	rs = sm3utils.VerifySaltedHash(loginParams.Passwd, userInfo.Passwd)
 	if !rs {
-		return 500, "登录失败，用户名或密码错误", entity.UserInfo{}
+		return 500, "登录失败，用户名或密码错误", &entity.UserInfo{}
 	}
-	return 200, "登录失败，用户名或密码错误", *userInfo
+	return 200, "登录成功", userInfo
 }
 
 func QueryUserInfoOneById(id int) (*entity.UserInfo, error) {

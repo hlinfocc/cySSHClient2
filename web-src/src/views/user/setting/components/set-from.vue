@@ -12,72 +12,65 @@
       <tiny-row :flex="true" justify="left">
         <tiny-col :span="5" label-width="100px">
           <tiny-form-item
-            :label="$t('userSetting.department')"
-            prop="department"
+            :label="$t('userSetting.realName')" prop="realName"
           >
-            <tiny-input v-model="state.filterOptions.department"></tiny-input>
+            <tiny-input v-model="state.filterOptions.realName"></tiny-input>
           </tiny-form-item>
         </tiny-col>
         <tiny-col :span="5" label-width="100px">
-          <tiny-form-item :label="$t('userSetting.position')" prop="position">
-            <tiny-input v-model="state.filterOptions.position"></tiny-input>
+          <tiny-form-item :label="$t('userSetting.account')" prop="account">
+            <tiny-input v-model="state.filterOptions.account" disabled></tiny-input>
+          </tiny-form-item>
+        </tiny-col>
+      </tiny-row>
+
+      <!-- <tiny-row :flex="true" justify="left">
+        <tiny-col :span="5" label-width="100px">
+          <tiny-form-item :label="$t('userSetting.status')" prop="status">
+            <tiny-input
+              v-model="state.filterOptions.status"
+            ></tiny-input>
+          </tiny-form-item>
+        </tiny-col>
+        <tiny-col :span="5" label-width="100px">
+          <tiny-form-item :label="$t('userSetting.userType')" prop="userType">
+            <tiny-input
+              v-model="state.filterOptions.userType"
+            ></tiny-input>
+          </tiny-form-item>
+        </tiny-col>
+      </tiny-row> -->
+
+      <tiny-row :flex="true" justify="left">
+        <tiny-col :span="5" label-width="100px">
+          <tiny-form-item :label="$t('userSetting.lastLoginTime')">
+            <tiny-input
+              v-model="state.filterOptions.lastLoginTime" disabled
+            ></tiny-input>
+          </tiny-form-item>
+        </tiny-col>
+        <tiny-col :span="5" label-width="100px">
+          <tiny-form-item :label="$t('userSetting.lastLoginIp')">
+            <tiny-input
+              v-model="state.filterOptions.lastLoginIp" disabled
+            ></tiny-input>
           </tiny-form-item>
         </tiny-col>
       </tiny-row>
 
       <tiny-row :flex="true" justify="left">
         <tiny-col :span="5" label-width="100px">
-          <tiny-form-item :label="$t('userSetting.type')" prop="type">
-            <tiny-select
-              v-model="state.filterOptions.type"
-              :placeholder="$t('baseForm.form.label.placeholder')"
-            >
-              <tiny-option
-                v-for="item in (projectData as any)"
-                :key="item.value"
-                :label="$t(item.label)"
-                :value="item.label"
-              ></tiny-option>
-            </tiny-select>
+          <tiny-form-item :label="$t('userSetting.role')">
+            <tiny-input v-model="state.filterOptions.role" disabled></tiny-input>
           </tiny-form-item>
         </tiny-col>
         <tiny-col :span="5" label-width="100px">
-          <tiny-form-item :label="$t('userSetting.date')" prop="date">
-            <tiny-date-picker
-              v-model="state.filterOptions.date"
-              unlink-panels
-              type="daterange"
-              range-separator="-"
-              :start-placeholder="$t('userSetting.first')"
-              :end-placeholder="$t('userSetting.last')"
-            ></tiny-date-picker>
-          </tiny-form-item>
-        </tiny-col>
-      </tiny-row>
-
-      <tiny-row :flex="true" justify="left">
-        <tiny-col :span="5" label-width="100px">
-          <tiny-form-item :label="$t('userSetting.during')" prop="during">
-            <tiny-input v-model="state.filterOptions.during"></tiny-input>
-          </tiny-form-item>
-        </tiny-col>
-        <tiny-col :span="5" label-width="100px">
-          <tiny-form-item :label="$t('userSetting.startTime')" prop="startTime">
-            <tiny-date-picker
-              v-model="state.filterOptions.startTime"
-              @blur="handleBlur"
-            ></tiny-date-picker>
-          </tiny-form-item>
-        </tiny-col>
-      </tiny-row>
-
-      <tiny-row :flex="true" justify="left">
-        <tiny-col :span="5" label-width="100px">
-          <tiny-form-item :label="$t('userSetting.endTime')" prop="endTime">
-            <tiny-date-picker
-              v-model="state.filterOptions.endTime"
-              @blur="handleBlur"
-            ></tiny-date-picker>
+          <tiny-form-item :label="$t('userSetting.passwd')">
+            <tiny-input
+              v-model="state.filterOptions.passwd"
+              type="password"
+              show-password
+            ></tiny-input>
           </tiny-form-item>
         </tiny-col>
       </tiny-row>
@@ -86,7 +79,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, reactive, defineProps, computed, defineExpose } from 'vue';
+  import { ref, reactive, defineProps, computed, defineExpose, onMounted, toRaw } from 'vue';
   import { useI18n } from 'vue-i18n';
   import {
     Select as TinySelect,
@@ -100,15 +93,21 @@
     DatePicker as TinyDatePicker,
     Modal,
   } from '@opentiny/vue';
+  import { useUserStore } from '@/store';
+
+  const userStore = useUserStore();
 
   interface FilterOptions {
-    department: string;
-    position: Array<object>;
-    type: Array<object>;
-    date: Array<object>;
-    during: Array<object>;
-    startTime: string;
-    endTime: string;
+    realName: string;
+    account: string;
+    status: number;
+    userType: number;
+    role: string;
+    lastLoginTime: string;
+    lastLoginIp: string;
+    createTime: string;
+    updateTime: string;
+    passwd: string;
   }
 
   const projectData = [
@@ -173,22 +172,22 @@
     };
   });
 
-  // 结束时间校验
-  const handleBlur = () => {
-    const start = state.filterOptions.startTime?.getTime();
-    const end = state.filterOptions.endTime?.getTime();
-    if (end < start) {
-      state.filterOptions.endTime = '';
-      Modal.message({
-        message: t('userInfo.time.message'),
-        status: 'error',
-      });
-    }
-  };
-  const setFormValid = () => {
+  
+  const setFormValid = async() => {
     let setValidate = false;
-    setFormRef.value.validate((valid: boolean) => {
+    setFormRef.value.validate(async(valid: boolean) => {
       setValidate = valid;
+      if (valid){
+        let formData= toRaw(state.filterOptions);
+        console.log("formdata:",formData);
+        await userStore.updateInfo(formData).then((res:any)=>{
+          console.log(">>>>>_____<<>>>>:",res);
+          Modal.message({
+            message: res.msg,
+            status: res.code===200?'success':'error',
+          });
+        });
+      }
     });
 
     return setValidate;
@@ -201,6 +200,11 @@
   const setData = () => {
     return state;
   };
+
+  onMounted(()=>{
+    let user:any = window.localStorage.getItem('USER_INFO_STORE_STATE');
+    state.filterOptions = JSON.parse(user);
+  })
 
   defineExpose({
     setData,

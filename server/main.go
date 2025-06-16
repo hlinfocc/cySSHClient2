@@ -35,6 +35,7 @@ type Args struct {
 	Version        bool
 	Web            bool
 	Socket         bool
+	Port           int
 }
 
 type Config struct {
@@ -46,10 +47,12 @@ type Config struct {
  */
 func initParams() Args {
 	args := Args{}
+	args.Port = 31918
 	flag.BoolVar(&args.Initialization, "init", args.Initialization, "初始化数据信息")
-	flag.StringVar(&args.Profile, "c", args.Profile, "指定配置文件")
+	// flag.StringVar(&args.Profile, "c", args.Profile, "指定配置文件")
 	flag.BoolVar(&args.Web, "w", args.Web, "启动web服务")
 	flag.BoolVar(&args.Socket, "s", args.Web, "启动Socket服务")
+	flag.IntVar(&args.Port, "p", args.Port, "指定web服务端口")
 	flag.BoolVar(&args.Version, "v", args.Version, "显示版本信息")
 	// 覆盖默认的Usage函数
 	flag.Usage = func() {
@@ -158,16 +161,16 @@ func main() {
 		if cfg.WebHook != "" {
 			go crontab.StartCrond(cfg.WebHook)
 		}
-		admin.StartWebServer()
+		admin.StartWebServer(args.Port)
 	} else if args.Socket {
 		StartSocketServer()
 	} else {
-		fmt.Println("启动web服务及Socket服务……")
+		fmt.Println("启动web服务……")
 		cfg := loadConfig()
 		if cfg.WebHook != "" {
 			go crontab.StartCrond(cfg.WebHook)
 		}
 		// go StartSocketServer()
-		admin.StartWebServer()
+		admin.StartWebServer(args.Port)
 	}
 }

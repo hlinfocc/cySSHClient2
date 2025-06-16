@@ -32,7 +32,7 @@ export function login(data: LoginData) {
   return request.post<any>({
     url:'/api/user/login',
     data
-  });
+  },{isTransformResponse:false});
 }
 export function loginMail(data: LoginDataMail) {
   return axios.post<LoginRes>('/api/mail/login', data);
@@ -47,7 +47,7 @@ export function getUserInfo() {
 }
 
 export function updateUserInfo(data: UserInfo) {
-  return axios.put<LoginRes>(`/api/user/userInfo`, data);
+  return request.post<any>({url:`/api/userInfo/update`, data},{isTransformResponse:false});
 }
 
 export function getUserData(data?: UserData) {

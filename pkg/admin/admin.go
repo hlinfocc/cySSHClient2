@@ -1,12 +1,14 @@
 package admin
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hlinfocc/cySSHClient2/assets"
@@ -15,12 +17,13 @@ import (
 	"github.com/hlinfocc/cySSHClient2/pkg/datavo"
 	"github.com/hlinfocc/cySSHClient2/pkg/utils"
 	jwtutils "github.com/hlinfocc/cySSHClient2/pkg/utils/jwtUtils"
+	sm3utils "github.com/hlinfocc/cySSHClient2/pkg/utils/sm3Utils"
 )
 
 type Resp struct {
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`
-	Data string `json:"msg"`
+	Data string `json:"data"`
 }
 
 func checkPortStatus(port int) bool {
@@ -58,8 +61,10 @@ func writePort(port int) {
 /**
 * 启动web服务
  */
-func StartWebServer() {
-	port := 31918
+func StartWebServer(port int) {
+	if port <= 0 {
+		port = 31918
+	}
 	for !checkPortStatus(port) {
 		port = port + 1
 	}
@@ -127,6 +132,11 @@ func StartWebServer() {
 			Msg:  msg,
 			Data: token,
 		}
+		user.LastLoginIp = user.ThatLoginIp
+		user.LastLoginTime = user.ThatLoginTime
+		user.ThatLoginIp = ctx.ClientIP()
+		user.ThatLoginTime = time.Now().Format("2006-01-02 15:04:05")
+		dbhandle.SaveUserInfo(user, false)
 		ctx.JSON(http.StatusOK, res)
 	})
 
@@ -147,19 +157,66 @@ func StartWebServer() {
 		}
 
 		log.Println(hostParams)
-		user := entity.UserInfo{
-			Id:       customClaims.UserID,
-			Account:  customClaims.Account,
-			Role:     customClaims.Role,
-			RealName: customClaims.RealName,
-			Status:   customClaims.Status,
-			UserType: customClaims.UserType,
+		user, uerr := dbhandle.QueryUserInfoOneById(customClaims.UserID)
+		if uerr != nil {
+			user = &entity.UserInfo{
+				Id:       customClaims.UserID,
+				Account:  customClaims.Account,
+				Role:     customClaims.Role,
+				RealName: customClaims.RealName,
+				Status:   customClaims.Status,
+				UserType: customClaims.UserType,
+			}
 		}
 		tokenData := datavo.TokenInfo{
 			Token:    token,
 			UserInfo: user,
 		}
 		ctx.JSON(http.StatusOK, tokenData)
+	})
+
+	router.POST("/api/userInfo/update", func(ctx *gin.Context) {
+		var reqParams *datavo.UserInfo
+		if err := ctx.ShouldBindJSON(&reqParams); err != nil {
+			// 处理错误
+			res := Resp{
+				Code: 404,
+				Msg:  "参数错误",
+				Data: err.Error(),
+			}
+			ctx.JSON(http.StatusOK, res)
+			return
+		}
+		log.Println(reqParams)
+		if reqParams.Passwd != "" {
+			reqParams.Passwd = sm3utils.GenerateSaltedHash(reqParams.Passwd)
+		}
+		// 将 reqParams 转为 JSON 字节
+		jsonBytes, err := json.Marshal(reqParams)
+		if err != nil {
+			res := Resp{
+				Code: 404,
+				Msg:  "处理失败",
+				Data: err.Error(),
+			}
+			ctx.JSON(http.StatusOK, res)
+			return
+		}
+
+		// 将 JSON 字节解析到 data
+		var data *entity.UserInfo
+		err = json.Unmarshal(jsonBytes, &data)
+		if err != nil {
+			res := Resp{
+				Code: 404,
+				Msg:  "处理失败",
+				Data: err.Error(),
+			}
+			ctx.JSON(http.StatusOK, res)
+			return
+		}
+		data.Passwd = reqParams.Passwd
+		ctx.JSON(http.StatusOK, dbhandle.SaveUserInfo(data, false))
 	})
 
 	router.POST("/api/hosts/list", func(ctx *gin.Context) {
@@ -185,6 +242,7 @@ func StartWebServer() {
 			res := Resp{
 				Code: 404,
 				Msg:  "参数错误",
+				Data: err.Error(),
 			}
 			ctx.JSON(http.StatusOK, res)
 			return

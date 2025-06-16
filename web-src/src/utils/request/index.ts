@@ -57,6 +57,10 @@ const transform: AxiosTransform = {
         break;
       case 401:
       case 402:
+      case 403:
+      case 417:
+      case 404:
+      case 500:
         if (errorMessageMode && errorMessageMode === 'message') {
           Modal.message({
             message: msg,
@@ -81,13 +85,12 @@ const transform: AxiosTransform = {
             status: 'error',
           });
         }
-        return '';
-      case 405:
-        return '';
+        break;
       default:
-        throw new Error(`请求接口错误, 错误码: ${code}`);
+        throw new Error(msg&&msg!==''?msg:`请求接口错误, 错误码: ${code}`);
         break;
     }
+    return '';
   },
 
   // 请求前处理配置

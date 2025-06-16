@@ -32,7 +32,7 @@ type UserInfo struct {
 	Id            int    `gorm:"column:id;PRIMARY_KEY;autoIncrement;not null" json:"id"`
 	RealName      string `json:"realName"`
 	Account       string `json:"account"`
-	Passwd        string `json:"passwd"`
+	Passwd        string `gorm:"column:passwd" json:"-"` // 序列化忽略但允许反序列化
 	Status        int    `json:"status"`
 	UserType      int    `json:"userType"`
 	Role          string `json:"role"`

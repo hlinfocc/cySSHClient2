@@ -13,9 +13,6 @@
             @click="handleSubmit"
             >{{ $t('userSetting.save') }}</tiny-button
           >
-          <tiny-button @click="handleFormReset">
-            {{ $t('userSetting.cancel') }}
-          </tiny-button>
         </div>
       </div>
     </div>
@@ -41,29 +38,7 @@
 
   async function handleSubmit() {
     let data = setFormRef.value.setData();
-    if (setFormRef.value.setFormValid()) {
-      let newTemp = {
-        department: data.filterOptions.department,
-        job: data.filterOptions.position,
-        employeeType: data.filterOptions.type,
-        probationStart: getSimpleDate(data.filterOptions.date[0]),
-        probationEnd: getSimpleDate(data.filterOptions.date[1]),
-        probationDuration: data.filterOptions.during,
-        protocolStart: getSimpleDate(data.filterOptions.startTime),
-        protocolEnd: getSimpleDate(data.filterOptions.endTime),
-      };
-      await userStore.updateInfo(newTemp);
-      Modal.message({
-        message: t('baseForm.form.submit.success'),
-        status: 'success',
-      });
-      handleFormReset();
-    } else {
-      Modal.message({
-        message: t('baseForm.form.submit.error'),
-        status: 'error',
-      });
-    }
+    setFormRef.value.setFormValid()
   }
 </script>
 

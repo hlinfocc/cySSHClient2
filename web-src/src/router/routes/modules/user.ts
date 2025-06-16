@@ -23,6 +23,7 @@ export default {
         locale: 'menu.user.info',
         requiresAuth: true,
         roles: [RoleType.admin, RoleType.user],
+        hideInMenu:true
       },
     },
     {

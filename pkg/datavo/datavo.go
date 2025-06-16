@@ -40,8 +40,8 @@ type HostParams struct {
 }
 
 type TokenInfo struct {
-	Token    string          `json:"token"`
-	UserInfo entity.UserInfo `json:"userInfo"`
+	Token    string           `json:"token"`
+	UserInfo *entity.UserInfo `json:"userInfo"`
 }
 
 type CreateSshKeyParams struct {
@@ -77,4 +77,21 @@ type CustomClaims struct {
 	UserType int    `json:"userType"`
 	Role     string `json:"role"`
 	jwt.RegisteredClaims
+}
+
+type UserInfo struct {
+	Id            int    `json:"id"`
+	RealName      string `json:"realName"`
+	Account       string `json:"account"`
+	Passwd        string `json:"passwd"`
+	Status        int    `json:"status"`
+	UserType      int    `json:"userType"`
+	Role          string `json:"role"`
+	LastLoginTime string `json:"lastLoginTime"`
+	LastLoginIp   string `json:"lastLoginIp"`
+	ThatLoginTime string `json:"thatLoginTime"`
+	ThatLoginIp   string `json:"thatLoginIp"`
+	CreateTime    string `json:"createTime"`
+	UpdateTime    string `json:"updateTime"`
+	Isdelete      int    `json:"isdelete"`
 }

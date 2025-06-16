@@ -9,6 +9,7 @@ import {
 } from '@/api/user';
 import { setToken, clearToken } from '@/utils/auth';
 import { removeRouteListener } from '@/utils/route-listener';
+import { Modal } from '@opentiny/vue';
 import { UserState, UserInfo } from './types';
 
 // 从 localStorage 加载初始状态
@@ -71,8 +72,14 @@ const useUserStore = defineStore('user', {
     },
 
     async updateInfo(data: UserInfo) {
-      const res = await updateUserInfo(data);
-      this.setInfo(res.data.userInfo);
+      return new Promise((resolve) => {
+        updateUserInfo(data).then((res)=>{
+          if(res.data){
+            this.setInfo(res.data.userInfo);
+          }
+          resolve(res)
+        });
+      })
     },
 
     // Login
@@ -81,11 +88,20 @@ const useUserStore = defineStore('user', {
         console.log("LoginData:", loginForm);
         await userLogin(loginForm).then((res) => {
           console.log("res:", res);
-          const { token, userInfo } = res;
-          setToken(token);
-          this.setInfo(userInfo);
+          if (res && res.code===200){
+            const { token, userInfo } = res.data;
+            setToken(token);
+            this.setInfo(userInfo);
+            Modal.message({
+              message: res.msg,
+              status: res.code===200?'success':'error',
+            });
+          }else{
+            throw new Error(res && res.msg&&res.msg!==''?res.msg:`登录失败`);
+          }
         }).catch((e) => {
-          console.log("e", e);
+          console.log("e>>>>>>>", e.message,e);
+          throw e;
         });
       } catch (err) {
         clearToken();
