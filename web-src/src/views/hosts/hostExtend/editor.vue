@@ -51,7 +51,6 @@
     Option as TinyOption,
     TinyRadio, TinyRadioGroup,TinyNumeric,TinyNotify,TinyDatePicker
    } from '@opentiny/vue';
-   
    import {
   queryHostsList,
   QueryParmas,
@@ -103,6 +102,7 @@ import { hostExtendInsert, hostExtendUpdate } from '@/api/hostsExtend';
           noteType = 'success';
           emit("success", true);
           emit("update:artdata", fromData.value);
+          emit("update:visible", false);
         }
         TinyNotify({
           type: noteType,
@@ -118,6 +118,7 @@ import { hostExtendInsert, hostExtendUpdate } from '@/api/hostsExtend';
           noteType = 'success';
           emit("success", true);
           emit("update:artdata", fromData.value);
+          emit("update:visible", false);
         }
         TinyNotify({
           type: noteType,

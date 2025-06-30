@@ -16,16 +16,17 @@ import (
 * 命令行参数结构体
  */
 type Args struct {
-	HostList   bool
-	HostAdd    bool
-	HostModify bool
-	HostDel    bool
-	KeyList    bool
-	KeyAdd     bool
-	KeyDel     bool
-	KeyGen     bool
-	KeySync    bool
-	Version    bool
+	HostList    bool
+	HostAdd     bool
+	HostModify  bool
+	HostDel     bool
+	KeyList     bool
+	KeyAdd      bool
+	KeyDel      bool
+	KeyGen      bool
+	KeySync     bool
+	Version     bool
+	VersionFull bool
 }
 
 /**
@@ -43,6 +44,7 @@ func initParams() (Args, int) {
 	flag.BoolVar(&args.KeyDel, "s", args.KeyDel, "删除一个SSH证书")
 	flag.BoolVar(&args.KeySync, "r", args.KeySync, "同步证书公钥到远程主机")
 	flag.BoolVar(&args.Version, "v", args.Version, "显示版本信息")
+	flag.BoolVar(&args.VersionFull, "V", args.VersionFull, "显示系统名称及版本信息")
 
 	flag.Parse()
 	hostId := -1
@@ -100,6 +102,9 @@ func main() {
 		service.SyncKey2Host(hostId, keyId)
 	} else if args.Version {
 		// 显示版本号
+		fmt.Println(version.Simple())
+	} else if args.VersionFull {
+		// 显示系统名称及版本信息
 		fmt.Println(version.Full())
 	} else {
 		if flag.NArg() > 0 {

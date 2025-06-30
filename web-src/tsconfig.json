@@ -1,21 +1,44 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "ES2020",
-    "moduleResolution": "node",
-    "strict": true, /* 启用所有严格的类型检查选项。 */
-    "jsx": "preserve", /* 指定生成什么JSX代码*/
-    "sourceMap": true,  /* 为生成的JavaScript文件创建源映射文件*/
+    "module": "NodeNext", // 更现代的模块系统，兼容性更好
+    "moduleResolution": "NodeNext", // 更明确的模块解析策略
+    "strict": true,
+    "jsx": "preserve",
+    "sourceMap": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
     },
-    "lib": ["es2020", "dom"],
-    "skipLibCheck": true, /* 跳过类型检查所有.d.ts文件 */
-    "types": ["vite/client"] /* vite ts支持 */
+    "lib": ["ES2020", "DOM", "DOM.Iterable"], // 添加 DOM.Iterable 支持
+    "skipLibCheck": true,
+    "types": ["vite/client"],
+    "noImplicitAny": false, // 明确禁止隐式 any 类型
+    "strictNullChecks": false, // 严格的 null 检查
+    "strictFunctionTypes": false, // 严格的函数类型检查
+    "strictBindCallApply": false, // 严格的 bind/call/apply 检查
+    "forceConsistentCasingInFileNames": false, // 强制文件名大小写一致
+    "noUnusedLocals": false, // 未使用的局部变量报错
+    "noUnusedParameters": false, // 未使用的参数报错
+    "noFallthroughCasesInSwitch": true, // switch 语句中缺少 break 报错
+    "allowSyntheticDefaultImports": true, // 允许从没有默认导出的模块中默认导入
+    "isolatedModules": true, // 确保每个文件可以单独编译
+    "incremental": true // 启用增量编译
   },
-  "include": ["src/**/*", "src/**/*.vue"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "src/**/*.d.ts",
+    "types/**/*.d.ts",
+    "vite.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ]
 }

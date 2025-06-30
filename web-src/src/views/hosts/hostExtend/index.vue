@@ -1,6 +1,6 @@
 <template>
   <div class="container-list">
-    <Breadcrumb :items="['menu.keys', 'menu.hostExtend.list']"/>
+    <Breadcrumb :items="['menu.hosts', 'menu.hostExtend.list']"/>
     <div class="contain">
       
       <tiny-fullscreen
@@ -113,7 +113,7 @@
         </div>
       </tiny-fullscreen>
     </div>
-    <editor :visible="editorVisible" :artdata="artdata" @success="addCallback" />
+    <editor v-model:visible="editorVisible" :artdata="artdata" @success="addCallback" />
   </div>
 </template>
 
@@ -239,7 +239,7 @@ const fetchDataOption = reactive({
   },
 });
 const handleDelete = (id:string)=>{
-  Modal.confirm('您确定要删除密钥吗？不可恢复哦').then((rs:any) => {
+  Modal.confirm('您确定要删除主机扩展信息吗？不可恢复哦').then((rs:any) => {
     deleteHostExtend(id).then((res:any)=>{
       if(res.code===200){
         reloadGrid();

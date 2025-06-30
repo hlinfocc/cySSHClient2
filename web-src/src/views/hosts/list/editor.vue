@@ -60,6 +60,7 @@
 } from '@/api/hosts';
 
 import type {HostsType} from '@/api/hosts';
+import { log } from "fp-ts/lib/Console";
 
   const visible = ref<boolean>(false);
   const options = ref<any>([
@@ -89,6 +90,7 @@ import type {HostsType} from '@/api/hosts';
    const propsArtdata = toRef(props, "artdata");
   const toggleDrawer = (value) => {
     visible.value = value
+    emit("update:visible", value);
   }
   const loadKeysList = ()=>{
     queryKeysList({page:0,limit:0}).then((res:any)=>{
@@ -104,7 +106,7 @@ import type {HostsType} from '@/api/hosts';
   
   const confirm = () => {
     let reqData = toRaw(fromData.value)
-    reqData.port = reqData.port + "";
+    reqData.port += "";
       if(reqData.id){
         hostsUpdate(reqData).then((res:any)=>{
           let noteType = 'error';
@@ -112,6 +114,7 @@ import type {HostsType} from '@/api/hosts';
             visible.value = false;
             noteType = 'success';
             emit("success", true);
+            emit("update:visible", false);
           }
           TinyNotify({
             type: noteType,
@@ -126,6 +129,7 @@ import type {HostsType} from '@/api/hosts';
             visible.value = false;
             noteType = 'success';
             emit("success", true);
+            emit("update:visible", false);
           }
           TinyNotify({
             type: noteType,
@@ -140,6 +144,7 @@ import type {HostsType} from '@/api/hosts';
     // Emits声明
     const emit = defineEmits(["update:visible","update:artdata","success"]);
     watch(propsVisible, (newValue, oldValue) => {
+      console.log("propsVisible.value>>>>>>",propsVisible.value);
         visible.value = propsVisible.value;
     });
     watch(propsArtdata, (newValue, oldValue) => {

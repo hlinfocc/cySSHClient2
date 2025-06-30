@@ -33,6 +33,7 @@ type Args struct {
 	Initialization bool
 	Profile        string
 	Version        bool
+	VersionFull    bool
 	Web            bool
 	Socket         bool
 	Port           int
@@ -54,9 +55,10 @@ func initParams() Args {
 	flag.BoolVar(&args.Socket, "s", args.Web, "启动Socket服务")
 	flag.IntVar(&args.Port, "p", args.Port, "指定web服务端口")
 	flag.BoolVar(&args.Version, "v", args.Version, "显示版本信息")
+	flag.BoolVar(&args.VersionFull, "V", args.VersionFull, "显示系统名称及版本信息")
 	// 覆盖默认的Usage函数
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "用法: %s [选项]\n\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "[%s]用法: %s [选项]\n\n", version.SysTitle, os.Args[0])
 		fmt.Fprintln(os.Stderr, "标准选项:")
 		flag.PrintDefaults() // 打印默认帮助信息
 		fmt.Fprintln(os.Stderr, "\n其他:")
@@ -155,6 +157,10 @@ func main() {
 		fmt.Println("初始化数据库")
 		initdb.Init()
 	} else if args.Version {
+		// 显示版本信息
+		fmt.Println(version.Simple())
+	} else if args.VersionFull {
+		// 显示系统名称及版本信息
 		fmt.Println(version.Full())
 	} else if args.Web {
 		cfg := loadConfig()

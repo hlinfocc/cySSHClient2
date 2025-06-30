@@ -1,1 +1,0 @@
-import{o as u,aU as c}from"./index-6aa188e3.js";var p=(n,t)=>{let e=null,a;const l=()=>{typeof t.value=="function"&&t.value.apply()},o=()=>{Date.now()-a<200&&l(),clearInterval(e),e=null};u(n,"mousedown",r=>{r.button===0&&(a=Date.now(),c(document,"mouseup",o),clearInterval(e),e=setInterval(l,200))})};export{p as r};

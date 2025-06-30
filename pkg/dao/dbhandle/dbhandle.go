@@ -418,7 +418,7 @@ func SaveHostExtent(hostdata *entity.HostExtent, izInsert bool) datavo.HostResp 
 		res.Count = 0
 		return res
 	}
-	hostdata.Host = hostobj.Host + hostobj.Port
+	hostdata.Host = hostobj.Host + ":" + hostobj.Port
 	if izInsert {
 		rs = hostextent.Insert(hostdata)
 	} else {

@@ -1,0 +1,1 @@
+import{B as o,H as t,L as r}from"./pinia-940ae834.js";import{_}from"./index-8096de3c.js";import"./echarts4-e8f5cdad.js";import"./echarts-0ad49557.js";import"./vue-b33d3fd0.js";import"./axios-7a713374.js";import"./mitt-f7ef348c.js";const n={};function a(c,s){const e=o("router-view");return t(),r(e)}const v=_(n,[["render",a],["__scopeId","data-v-ae6a38ad"]]);export{v as default};

@@ -99,7 +99,7 @@
         </div>
       </tiny-fullscreen>
     </div>
-    <editor :visible="editorVisible" :artdata="artdata" @success="addCallback" />
+    <editor v-model:visible="editorVisible" :artdata="artdata" @success="addCallback" />
   </div>
 </template>
 

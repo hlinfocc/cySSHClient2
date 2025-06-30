@@ -59,6 +59,7 @@ module.exports = {
     'vue/padding-line-between-blocks': 1,
     'vue/require-direct-export': 1,
     'vue/multi-word-component-names': 0,
+    'vue/v-model-argument': 'off',
     // Allow @ts-ignore comment
     '@typescript-eslint/ban-ts-comment': 0,
     '@typescript-eslint/no-unused-vars': 0,

@@ -22,6 +22,7 @@ type Args struct {
 	Source       string
 	Target       string
 	Version      bool
+	VersionFull  bool
 }
 
 /**
@@ -32,6 +33,7 @@ func initParams() Args {
 	flag.BoolVar(&args.Local2Remote, "l", args.Local2Remote, "从本地上传文件到远程服务器")
 	flag.BoolVar(&args.Remote2Local, "r", args.Remote2Local, "从远程服务器复制文件到本地")
 	flag.BoolVar(&args.Version, "v", args.Version, "显示版本信息")
+	flag.BoolVar(&args.VersionFull, "V", args.VersionFull, "显示系统名称及版本信息")
 	// 覆盖默认的Usage函数
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "用法: %s [选项]\n\n", os.Args[0])
@@ -89,6 +91,8 @@ func main() {
 		}
 		service.HostScpHandle(hostId, false, source1, source2)
 	} else if args.Version {
+		fmt.Println(version.Simple())
+	} else if args.VersionFull {
 		fmt.Println(version.Full())
 	} else {
 		errors.ThrowError(fmt.Sprintf("参数不正确，使用：%s -? 查看选项信息", os.Args[0]))

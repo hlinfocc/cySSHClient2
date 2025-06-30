@@ -154,7 +154,7 @@
         </div>
       </tiny-fullscreen>
     </div>
-    <editor :visible="editorVisible" :artdata="artdata" @success="reloadGrid" />
+    <editor v-model:visible="editorVisible" :artdata="artdata" @success="reloadGrid" />
   </div>
 </template>
 
