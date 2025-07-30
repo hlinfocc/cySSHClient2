@@ -2,8 +2,8 @@ package version
 
 import "fmt"
 
-const version = "2.2.1"
-const SysTitle = "沁芳Linux远程主机管理系统"
+const version = "2.2.2"
+const SysTitle = "远程主机管理系统"
 
 func Simple() string {
 	return version

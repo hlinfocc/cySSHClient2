@@ -11,7 +11,7 @@
             /> -->
             <span class="login-logo-text">{{ VITE_GLOBAL_TITLE }}</span>
           </div>
-          <div class="login-desc">用户登录中心（V2.2.1）</div>
+          <div class="login-desc">用户登录中心（V2.2.2）</div>
         </div>
         <LoginForm />
       </div>
