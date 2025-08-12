@@ -115,7 +115,7 @@ func main() {
 		} else {
 			dbhandle.RenderHostList()
 			hostId = utils.InputHostId()
-			fmt.Println(hostId)
+			// fmt.Println(hostId)
 		}
 		service.HostSshHandle(hostId)
 	}

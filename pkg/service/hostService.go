@@ -50,7 +50,7 @@ func HostSshHandle(hostId int) {
 func SyncKey2Host(hostId int, keyId int) {
 	hostInfo, err := dbhandle.QueryHostOneById(hostId)
 	errors.CheckError(err)
-	keysInfo, kerr := dbhandle.QueryKeyOneById(utils.String2Int(hostInfo.Keypath))
+	keysInfo, kerr := dbhandle.QueryKeyOneById(utils.String2IntDefault(hostInfo.Keypath, keyId))
 	errors.CheckError(kerr)
 	homeDir, err := os.UserHomeDir()
 	var keyDir string

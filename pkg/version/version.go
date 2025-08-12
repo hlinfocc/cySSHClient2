@@ -2,7 +2,7 @@ package version
 
 import "fmt"
 
-const version = "2.2.2"
+const version = "2.2.3"
 const SysTitle = "远程主机管理系统"
 
 func Simple() string {

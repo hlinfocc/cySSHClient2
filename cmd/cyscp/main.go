@@ -40,8 +40,8 @@ func initParams() Args {
 		fmt.Fprintln(os.Stderr, "标准选项:")
 		flag.PrintDefaults() // 打印默认帮助信息
 		fmt.Fprintln(os.Stderr, "\n示例信息:")
-		fmt.Fprintf(os.Stderr, "  * 示例1本地传到远程主机（需要选择主机）: %s -r ./example.txt /opt/\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "  * 示例2本地传到远程主机[1:是直接指定主机ID]: %s -r ./example.txt 1:/opt/\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  * 示例1本地传到远程主机（需要选择主机）: %s -l ./example.txt /opt/\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  * 示例2本地传到远程主机[1:是直接指定主机ID]: %s -l ./example.txt 1:/opt/\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "  * 示例3远程主机传到本地（需要选择主机）: %s -r /opt/ ./example.txt \n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "  * 示例3远程主机传到本地[1:是直接指定主机ID]: %s -r 1:/opt/example.txt ./ \n", os.Args[0])
 	}
@@ -53,7 +53,7 @@ func main() {
 	// 命令行参数解析
 	args := initParams()
 
-	fmt.Printf("args:%v\n", args)
+	// fmt.Printf("args:%v\n", args)
 	if args.Local2Remote && args.Remote2Local {
 		errors.ThrowError("参数-l和-r不能同时存在")
 	}

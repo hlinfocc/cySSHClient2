@@ -232,6 +232,17 @@ func String2Int(s string) int {
 	return res
 }
 
+func String2IntDefault(s string, defVal int) int {
+	if len(s) == 0 {
+		return defVal
+	}
+	res, err := strconv.Atoi(s)
+	if err != nil {
+		return defVal
+	}
+	return res
+}
+
 func RandStringBytes(n int, letter bool) string {
 	letterBytes := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 	if letter {

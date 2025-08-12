@@ -107,6 +107,7 @@ import { log } from "fp-ts/lib/Console";
   const confirm = () => {
     let reqData = toRaw(fromData.value)
     reqData.port += "";
+    reqData.keypath += "";
       if(reqData.id){
         hostsUpdate(reqData).then((res:any)=>{
           let noteType = 'error';
